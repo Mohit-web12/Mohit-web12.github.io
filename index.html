@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mohit Chander: software and data for finance</title>
+  <meta name="description" content="I build software for the back office of finance: a trade lifecycle and reconciliation engine, a deployed finance app, and statistics work in Python and R. Stony Brook, class of 2027.">
+  <link rel="canonical" href="https://mohit-web12.github.io/">
+  <meta name="theme-color" content="#F4F0E6">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mohit Chander">
+  <meta property="og:description" content="Software and data for the back office of finance. Trade reconciliation, a deployed finance app, and statistics in Python and R.">
+  <meta property="og:url" content="https://mohit-web12.github.io/">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Mohit Chander, set in a serif on cream paper, with a red period.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="preload" href="fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#data">Data and stats</a></li>
+          <li><a href="resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="name">
+      <span class="kicker">Stony Brook University / Class of May 2027</span>
+      <h1 class="name" id="name" aria-label="Mohit Chander."><span class="w" aria-hidden="true"><span class="ch" style="--i:0">M</span><span class="ch" style="--i:1">o</span><span class="ch" style="--i:2">h</span><span class="ch" style="--i:3">i</span><span class="ch" style="--i:4">t</span></span> <span class="w" aria-hidden="true"><span class="ch" style="--i:5">C</span><span class="ch" style="--i:6">h</span><span class="ch" style="--i:7">a</span><span class="ch" style="--i:8">n</span><span class="ch" style="--i:9">d</span><span class="ch" style="--i:10">e</span><span class="ch" style="--i:11">r</span><span class="dot">.</span></span></h1>
+      <p class="subhead">I build software for the back office of finance.</p>
+      <div class="hero-grid">
+        <p class="lede">I study computer information systems and applied math and statistics at Stony Brook. I've trained and evaluated AI models at Uber AI Solutions and Handshake AI, and I build full stack apps with Python, SQL, FastAPI, React, and Docker. Outside class I built the trade engine and SpendGauge, both below. I'm looking for software engineering, data engineering, or analytics roles.</p>
+        <dl class="facts">
+          <div><dt>Looking for</dt><dd>New grad SWE and data roles in fintech</dd></div>
+          <div><dt>Based in</dt><dd>New York metro</dd></div>
+          <div><dt>Recent role</dt><dd>Data Structures and Algorithms TA</dd></div>
+          <div><dt>Internship</dt><dd>IBM SkillsBuild micro internship, through Parker Dewey</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section wrap" id="work" aria-labelledby="work-title">
+      <div class="section-head" data-reveal="heading">
+        <h2 id="work-title"><span class="h-mask">Selected work</span></h2>
+        <span class="count">02 entries</span>
+      </div>
+
+      <article class="flagship" aria-labelledby="te-title">
+        <div class="flagship-text">
+          <span class="kicker" data-reveal>01 / Flagship</span>
+          <h3 class="entry-title" id="te-title" data-reveal>Trade lifecycle and reconciliation engine</h3>
+          <p data-reveal>When a trade goes through, both sides write down what they think happened. A break is when the two records disagree: a price off by a few cents, a settlement date a day late, or a trade one side never recorded.</p>
+          <p data-reveal>My engine moves each trade through five stages and keeps every step in an append only event log. It lines our book up against the counterparty's with a <code>FULL OUTER JOIN</code> and sorts every mismatch into one of six break types. On its first run against real fills from a live brokerage API, it caught three price breaks.</p>
+
+          <table class="ledger">
+            <caption>Key numbers</caption>
+            <tbody data-reveal-children>
+              <tr><th scope="row">Lifecycle stages, placed to confirmed</th><td><span data-count>5</span></td></tr>
+              <tr><th scope="row">Break types it detects</th><td><span data-count>6</span></td></tr>
+              <tr><th scope="row">Real price breaks caught on the first live run</th><td><span data-count>3</span></td></tr>
+              <tr><th scope="row">Automated tests, run in CI</th><td><span data-count>67</span></td></tr>
+              <tr><th scope="row">Deploys to AWS (EKS, MSK, RDS) with Terraform, then torn down</th><td><span data-count>1</span></td></tr>
+            </tbody>
+          </table>
+          <p class="stack" data-reveal>Python · FastAPI · PostgreSQL · Kafka · Kubernetes · Terraform · AWS</p>
+
+          <div class="actions" data-reveal>
+            <a class="btn btn-dark" href="https://github.com/Mohit-web12/trade-lifecycle-engine">Read the code</a>
+            <a class="btn" href="work/trade-engine.html#how-a-break-is-caught">How a break is caught</a>
+          </div>
+        </div>
+
+        <div class="flagship-media">
+          <figure data-reveal="figure" data-parallax>
+            <div class="well">
+              <img src="img/eks-terminal.webp" srcset="img/eks-terminal-640.webp 640w, img/eks-terminal.webp 1146w" sizes="(max-width: 860px) calc(100vw - 32px), 580px" width="1146" height="822" alt="Terminal output from the AWS deploy. kubectl lists the frontend, gateway and worker pods as Running on EKS, and the worker log shows it consuming the trade.lifecycle topic from managed Kafka.">
+            </div>
+            <figcaption><span class="fig-no">FIG. 01</span>The engine running on AWS EKS, with its worker reading trade events from managed Kafka. Account details are blanked out.</figcaption>
+          </figure>
+
+          <div class="modules">
+            <span class="modules-label" id="modules-label" data-reveal>Modules</span>
+            <ol aria-labelledby="modules-label" data-reveal-children>
+              <li><span class="mod-name">gateway</span><span class="mod-job">Takes orders over REST</span></li>
+              <li><span class="mod-name">lifecycle</span><span class="mod-job">State machine and event log</span></li>
+              <li class="is-key"><span class="mod-name">reconciliation</span><span class="mod-job">The join that finds breaks</span></li>
+              <li><span class="mod-name">read</span><span class="mod-job">Queries for the API and dashboard</span></li>
+            </ol>
+          </div>
+        </div>
+      </article>
+
+      <article class="secondary" aria-labelledby="sg-title">
+        <figure class="sg-media" data-reveal="figure" data-parallax>
+          <div class="well">
+            <video id="sg-demo" width="800" height="600" muted loop playsinline preload="none" poster="img/spendgauge-poster.webp" aria-label="Screen recording of SpendGauge" aria-describedby="sg-cap">
+              <source data-src="img/spendgauge-demo.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="demo-controls">
+            <figcaption id="sg-cap"><span class="fig-no">FIG. 02</span>Logging in, importing a bank CSV twice (the second time every row is skipped as a duplicate), then the gauges updating.</figcaption>
+            <button class="demo-toggle" type="button" hidden>Play demo</button>
+          </div>
+        </figure>
+
+        <div class="sg-text" data-reveal-children>
+          <span class="kicker">02 / Deployed app</span>
+          <h3 class="entry-title" id="sg-title">SpendGauge</h3>
+          <p>A personal finance dashboard that runs on Render. Upload a bank CSV and it sorts each transaction into a category, refuses any row it has already seen, and redraws the month's gauges.</p>
+          <p class="statline"><span data-count>20</span> endpoints · <span data-count>63</span> tests · <span data-count>95</span>% core coverage</p>
+          <ul class="linkrow">
+            <li><a href="https://fin-dash-web.onrender.com">Live demo</a></li>
+            <li><a href="https://github.com/Mohit-web12/fin-dash">Code</a></li>
+            <li><a href="work/spendgauge.html">Write up</a></li>
+          </ul>
+          <p class="note">The free server may take up to a minute to wake up.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="band" id="data" aria-labelledby="data-title">
+      <div class="wrap">
+        <div class="section-head" data-reveal="heading">
+          <h2 id="data-title"><span class="h-mask">Data and statistics</span></h2>
+          <span class="count">05 entries</span>
+        </div>
+
+        <div class="table-scroll" role="region" aria-labelledby="data-title" tabindex="0">
+          <table class="data-table">
+            <caption class="visually-hidden">Data and statistics projects, with the tools, method and headline result of each</caption>
+            <thead>
+              <tr>
+                <th scope="col">Tools</th>
+                <th scope="col">Project</th>
+                <th scope="col">Method</th>
+                <th scope="col" class="num">Result</th>
+                <th scope="col">Open</th>
+              </tr>
+            </thead>
+            <tbody data-reveal-children>
+              <tr>
+                <td class="tools">Python</td>
+                <td class="project"><strong>Malibu housing prices</strong><span>What drives the price of a house in Malibu, across 3,000 listings.</span></td>
+                <td class="method">Log transformed price, VIF check, backward elimination to 13 predictors</td>
+                <td class="num"><span class="res"><span class="res-base">R² <span data-count>0.853</span></span></span></td>
+                <td class="open"><a href="work/malibu-housing.html">Read<span class="visually-hidden"> the Malibu housing write up</span></a></td>
+              </tr>
+              <tr>
+                <td class="tools">R</td>
+                <td class="project"><strong>Finding the true model</strong><span>Which of 24 predictors actually generated the outcome, for 1,204 people.</span></td>
+                <td class="method">Correlation screen, Bonferroni cutoff, ANOVA test on interaction terms</td>
+                <td class="num"><span class="res"><span class="res-base">5 of 24 kept</span></span></td>
+                <td class="open"><a href="work/true-model.html">Read<span class="visually-hidden"> the true model write up</span></a></td>
+              </tr>
+              <tr>
+                <td class="tools">R</td>
+                <td class="project"><strong>Regression with missing data</strong><span>Fitting a line when about 10% of each variable is missing.</span></td>
+                <td class="method">MICE multiple imputation (m = 5), lack of fit F test</td>
+                <td class="num"><span class="res"><span class="res-base">R² <span data-count>0.85</span></span></span></td>
+                <td class="open"><a href="work/missing-data.html">Read<span class="visually-hidden"> the missing data write up</span></a></td>
+              </tr>
+              <tr>
+                <td class="tools">Python, AWS</td>
+                <td class="project"><strong>Agentic financial workflow</strong><span>A five stage pipeline where an LLM sorts bank transactions and pandas does the math.</span></td>
+                <td class="method">Llama 3.1 on Bedrock, S3, JSON schema checks with retry</td>
+                <td class="num"><span class="tag"><span class="pulse" aria-hidden="true"></span>in progress</span></td>
+                <td class="open"><a href="work/agentic-workflow.html">Read<span class="visually-hidden"> the agentic workflow write up</span></a></td>
+              </tr>
+              <tr>
+                <td class="tools">Excel</td>
+                <td class="project"><strong>First year teacher budget</strong><span>Can a new Philadelphia teacher on $57,444 afford to live alone? Built during my IBM SkillsBuild micro internship with Teach For America.</span></td>
+                <td class="method">Take home pay model from the salary schedule and tax rates, two scenarios, 14 checks</td>
+                <td class="num"><span class="res"><span class="res-base">$38 short/mo</span></span></td>
+                <td class="open"><a href="work/teacher-budget.html">Read<span class="visually-hidden"> the teacher budget write up</span></a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="also" data-reveal-children>
+          <div>
+            <span class="also-label">Also built / SQL</span>
+            <h3>Pharmacy inventory database</h3>
+            <p>A seven table model for stock, suppliers, sales and purchase orders, with queries for what to reorder, what has expired, and what sells most. Built with my partner Emon.</p>
+            <!-- TODO: replace # with the pharmacy database link -->
+            <a class="read-link" href="#">Read<span class="visually-hidden"> about the pharmacy inventory database</span></a>
+          </div>
+          <div>
+            <span class="also-label">Also built / Luau, Python</span>
+            <h3>Card Shop After Dark</h3>
+            <p>A Roblox game about running a trading card shop. I wrote the design and architecture docs, plus a Python sim that balances the economy's pacing.</p>
+            <!-- TODO: replace # with the Card Shop After Dark link -->
+            <a class="read-link" href="#">Read<span class="visually-hidden"> about Card Shop After Dark</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing wrap" aria-labelledby="closing-line">
+      <h2 class="closing-line" id="closing-line" data-reveal="lines">I'm looking for new grad roles starting in 2027. If your team works on trading, payments, or financial data, I'd like to talk.</h2>
+      <div class="actions" data-reveal>
+        <a class="btn btn-cta" href="resume.pdf" download="Mohit-Chander-Resume.pdf">Download resume</a>
+        <a class="btn" href="mailto:mohitchander005@gmail.com">Email me</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+
+</body>
+</html>

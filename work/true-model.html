@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finding the true model · Mohit Chander</title>
+  <meta name="description" content="Recovering a hidden regression equation from 24 candidate predictors for 1,204 people in R: a correlation screen, a Bonferroni cutoff, and an F test on gene by environment interactions.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/true-model.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Finding the true model">
+  <meta property="og:description" content="Which of 24 predictors actually generated the outcome, for 1,204 people.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/true-model.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#data">← Data and statistics</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">Data and statistics / R</span>
+      <h1>Finding the true model</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Tools</th><td>R: <code>lm</code>, <code>anova</code>, <code>cor</code></td></tr>
+        <tr><th scope="row">Data</th><td><span class="num-inline" data-count>1,204</span> people, <span class="num-inline" data-count>4</span> environmental and <span class="num-inline" data-count>20</span> genetic predictors</td></tr>
+        <tr><th scope="row">Result</th><td><span class="num-inline" data-count>5</span> of 24 predictors kept, adjusted R² <span class="num-inline" data-count>0.600</span>, no interactions</td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>The outcome Y in this dataset was simulated from an equation I couldn't see. My job was to recover it. Which of the 24 predictors are really in the equation, and does it include any gene by environment interactions, where the effect of the environment depends on which genes you have?</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I did</span></h2>
+      <p><strong>Checked the data.</strong> There were 1,204 complete rows. The four environmental variables, E1 to E4, are continuous and run from 5 to 10. The twenty genetic markers, G1 to G20, are 0 or 1. The scatterplots looked linear and a Box Cox check put λ near 1, so I left Y untransformed.</p>
+      <p><strong>Screened with correlations.</strong> Three environmental variables stood out right away, E2, E3 and E4 at 0.41, 0.44 and 0.46. Two genes, G5 and G10, were weaker but clearly above the rest at 0.13 and 0.17.</p>
+
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/tm-correlations.webp" width="1224" height="568" loading="lazy" decoding="async" alt="Bar chart of each predictor's correlation with Y. E2, E3 and E4 are between 0.41 and 0.46. G5 is 0.13 and G10 is 0.17. All other predictors are between minus 0.07 and 0.07.">
+        <figcaption><span class="fig-no">FIG. 01</span>Correlation of each predictor with Y. The five that made the final model are in red.</figcaption>
+      </figure>
+
+      <p><strong>Fit everything, then cut hard.</strong> A model with all 24 predictors explained 60.7% of the variance (adjusted R² 0.599). Testing 24 coefficients at once makes a false positive likely, so I used a Bonferroni cutoff: 0.01 divided by 24, about 0.0004. The same five predictors passed, and by a wide margin. Nothing else came close.</p>
+
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/tm-pvalues.webp" width="1210" height="612" loading="lazy" decoding="async" alt="Bar chart of minus log10 p values from the full model, on a log scale, with a dashed Bonferroni cutoff near 3.4. E2, E3 and E4 are near 100. G5 and G10 are near 13 and 15. Every other predictor is below the cutoff.">
+        <figcaption><span class="fig-no">FIG. 02</span>Evidence for each predictor in the full model. Taller is stronger. Only five clear the cutoff.</figcaption>
+      </figure>
+
+      <p><strong>Refit with five.</strong> The reduced model had an adjusted R² of 0.6003, slightly higher than the full model's 0.5991 with 19 fewer predictors:</p>
+<pre><code>Ŷ = 7.92 + 0.288·E2 + 0.308·E3 + 0.338·E4 + 0.354·G5 + 0.390·G10</code></pre>
+      <p><strong>Tested interactions.</strong> I added all six gene by environment terms, each of E2, E3 and E4 crossed with G5 and G10. None was significant on its own (p values from 0.07 to 0.93), and an F test against the reduced model gave F = 1.20, p = 0.305. They don't belong. Residual and QQ plots for the final model showed no curve or funnel, only small departures at the ends.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I found</span></h2>
+      <p>Y comes from a simple additive model: three environmental variables and two genes, with no interactions. The environment matters more. Moving one environmental variable across its range of about 5 points shifts Y by roughly 1.4 to 1.7, while carrying G5 or G10 adds about 0.35 to 0.39.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Test for curvature and higher order terms, which this approach would miss.</li>
+        <li>Check that the same five survive on resampled data, with bootstrap or cross validation.</li>
+        <li>Compare against lasso, which does selection and fitting in one step.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn" href="missing-data.html">Next: Regression with missing data</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="malibu-housing.html">← Malibu housing prices</a>
+      <a href="missing-data.html">Regression with missing data →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>

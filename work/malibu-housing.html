@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Malibu housing prices · Mohit Chander</title>
+  <meta name="description" content="A regression on 3,000 Malibu listings: log transformed price, a multicollinearity check, and backward elimination to 13 predictors. R² 0.853, held out R² 0.843.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/malibu-housing.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Malibu housing prices">
+  <meta property="og:description" content="What sets the price of a house in Malibu, across 3,000 listings.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/malibu-housing.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#data">← Data and statistics</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">Data and statistics / Python</span>
+      <h1>Malibu housing prices</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Tools</th><td>Python: pandas, statsmodels, sklearn</td></tr>
+        <tr><th scope="row">Data</th><td><span class="num-inline" data-count>3,000</span> listings, <span class="num-inline" data-count>15</span> predictors, no missing values</td></tr>
+        <tr><th scope="row">Result</th><td>R² <span class="num-inline" data-count>0.853</span> (adjusted <span class="num-inline" data-count>0.852</span>), held out R² <span class="num-inline" data-count>0.843</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>What actually sets the price of a house in Malibu? I had 3,000 listings with 15 features each, from house size and room count to the distance from the beach. I wanted a model that explains price, keeps only the predictors that earn their place, and still works on listings it hasn't seen.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I did</span></h2>
+      <p><strong>Fixed the skew first.</strong> Prices ran from $250,000 to $11.7 million, with a mean of $2.56 million and a median of $1.74 million. A skewness of 1.53 breaks the normality assumption ordinary least squares leans on, so I modeled log(price) instead. That brought the skewness to −0.18, and it means every coefficient reads as a percent change in price.</p>
+      <p><strong>Checked for predictors that say the same thing.</strong> The variance inflation factor measures how well each predictor can be predicted by the others. Anything over 10 is a warning. Lot size and yard size came in at 871 and 793, which makes sense: big lots have big yards.</p>
+
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/malibu-vif.webp" width="1426" height="787" loading="lazy" decoding="async" alt="Bar chart of variance inflation factors on a log scale. Lot size 871 and yard size 793 are far past the threshold of 10. House size 14.1 and rooms 10.9 are just past it. The other eleven predictors are between 1.0 and 6.2.">
+        <figcaption><span class="fig-no">FIG. 01</span>Variance inflation for all 15 predictors. Lot size and yard size are almost the same variable.</figcaption>
+      </figure>
+
+      <p><strong>Removed predictors one at a time.</strong> I fit all 15, dropped the one with the largest p value above 0.05, refit, and repeated. Distance to the nearest shopping center went first (p = 0.46), then lot size (p = 0.28). The other 13 were all significant. Dropping lot size also solved the yard problem: in the final model the highest VIF is rooms at 10.9.</p>
+      <p>R² barely moved, from 0.8531 to 0.8530, while the F statistic rose from 1,155 to 1,333 and AIC fell from 3,482.38 to 3,480.09. The two predictors weren't adding anything. Then I held out a random 20% of listings, fit on the rest, and scored the held out set: R² 0.843, close to the in sample 0.853, so the model isn't just memorizing.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I found</span></h2>
+      <p>Distance to the beach is the biggest driver. Each extra mile from the water takes about 23% off the price, with everything else held fixed. Each extra room adds about 22%. Gated access, an HOA and solar panels each add between 8.5% and 10.6%.</p>
+
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/malibu-effects.webp" width="1600" height="740" loading="lazy" decoding="async" alt="Bar chart of the percent change in price for one more unit of each predictor. Distance to the beach is minus 23.0% per mile. School district score is minus 19.9% per point. Rooms plus 21.7%, parking spots plus 12.1%, solar panels plus 10.6%, gated plus 9.6%, HOA plus 8.5%, bathrooms plus 4.5%. The rest are within 2% of zero.">
+        <figcaption><span class="fig-no">FIG. 02</span>How price changes for one more unit of each predictor in the final model. House and yard size are shown per 100 square feet.</figcaption>
+      </figure>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Look harder at the school district score. Its coefficient is negative, about 20% less per point, which is the opposite of what you'd expect. I'd check how that variable was coded before trusting it.</li>
+        <li>Deal with rooms and house size, which still overlap (VIF 10.9 and 7.9). Combining them or using ridge regression would be my next try.</li>
+        <li>Use cross validation instead of a single 80/20 split, so the held out score doesn't depend on one random draw.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn" href="true-model.html">Next: Finding the true model</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="spendgauge.html">← SpendGauge</a>
+      <a href="true-model.html">Finding the true model →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trade lifecycle and reconciliation engine · Mohit Chander</title>
+  <meta name="description" content="How my trade engine catches settlement breaks: an append only event log, a FULL OUTER JOIN against the counterparty, idempotent Kafka consumers, and a live run against real broker fills.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/trade-engine.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Trade lifecycle and reconciliation engine">
+  <meta property="og:description" content="How the engine catches settlement breaks, and the three real ones it found on its first live run.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/trade-engine.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#work">← All work</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">01 / Flagship</span>
+      <h1>Trade lifecycle and reconciliation engine</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Stack</th><td>Python, FastAPI, PostgreSQL, Kafka, Kubernetes, Terraform, AWS (EKS, MSK, RDS)</td></tr>
+        <tr><th scope="row">Result</th><td>Caught 3 real price breaks on its first live run, with no false positives</td></tr>
+        <tr><th scope="row">Tests</th><td><span class="num-inline" data-count>67</span>, run in GitHub Actions against a real Postgres container</td></tr>
+        <tr><th scope="row">Code</th><td><a href="https://github.com/Mohit-web12/trade-lifecycle-engine">github.com/Mohit-web12/trade-lifecycle-engine</a></td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>When a trade executes, both parties keep their own record of it. Those records disagree more often than you'd think: a price off by a cent, a settlement date shifted by a day, a trade one side dropped. Somebody in the back office has to find each of those breaks and explain it. I wanted to build the system that finds them, and to learn the infrastructure a system like that actually runs on.</p>
+
+      <figure class="figure" id="how-a-break-is-caught">
+        <div class="break-demo" data-break-demo>
+          <table class="break-grid">
+            <caption class="visually-hidden">Our booked NVDA trade compared with the broker's fill, field by field</caption>
+            <thead>
+              <tr style="--r:0">
+                <th scope="col" class="field"><span class="visually-hidden">Field</span></th>
+                <th scope="col" class="ours">Our book<span class="sub">NVDA buy</span></th>
+                <th scope="col" class="match"><span class="visually-hidden">Match</span></th>
+                <th scope="col" class="theirs">Broker fill<span class="sub">NVDA buy</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="--r:0">
+                <th scope="row" class="field">Trade</th>
+                <td class="ours">4adfe533…</td>
+                <td class="match"><span class="sym" aria-hidden="true">=</span><span class="visually-hidden">matches</span></td>
+                <td class="theirs">4adfe533…</td>
+              </tr>
+              <tr style="--r:1">
+                <th scope="row" class="field">Quantity</th>
+                <td class="ours">4.0000</td>
+                <td class="match"><span class="sym" aria-hidden="true">=</span><span class="visually-hidden">matches</span></td>
+                <td class="theirs">4.0000</td>
+              </tr>
+              <tr class="is-break" style="--r:2">
+                <th scope="row" class="field">Price</th>
+                <td class="ours">225.1600</td>
+                <td class="match"><span class="sym" aria-hidden="true">≠</span><span class="visually-hidden">does not match</span></td>
+                <td class="theirs">226.7300</td>
+              </tr>
+              <tr style="--r:3">
+                <th scope="row" class="field">Settles</th>
+                <td class="ours">2026-08-18</td>
+                <td class="match"><span class="sym" aria-hidden="true">=</span><span class="visually-hidden">matches</span></td>
+                <td class="theirs">2026-08-18</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="break-result">
+            <span class="break-tag"><span class="mark" aria-hidden="true"></span>PRICE BREAK</span>
+            <span class="break-detail">226.73 − 225.16 = +1.57 a share</span>
+            <button class="demo-toggle break-replay" type="button" hidden>Replay</button>
+          </div>
+        </div>
+        <figcaption><span class="fig-no">FIG. 01</span>How a break is caught, using the NVDA trade from the live run. The join pairs our record with the broker's by trade ID, then compares quantity, price and settlement date. Only the price differs, so the engine records a price break.</figcaption>
+      </figure>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I did</span></h2>
+      <p>I built the logic first and the infrastructure second, so the hard part worked before Kafka or AWS could get in the way.</p>
+      <ul>
+        <li><strong>An event log, not a status column.</strong> Every trade moves through five stages: placed, validated, executed, settled, confirmed. Each step is one immutable row in an append only <code>trade_events</code> table. The current state of a trade is rebuilt from that log, so the log doubles as the audit trail.</li>
+        <li><strong>A counterparty that lies on purpose.</strong> A generator plays the other side. It copies each trade faithfully most of the time and sometimes corrupts it, so the demo always has something to catch.</li>
+        <li><strong>One hand written query.</strong> Reconciliation is raw SQL, not the ORM, because it's the part that has to be exactly right.</li>
+      </ul>
+
+<pre><code>WITH cp AS (                          -- collapse duplicates first
+  SELECT trade_id, COUNT(*) AS record_count,
+         MAX(price) AS price, MAX(quantity) AS quantity,
+         MAX(settlement_date) AS settlement_date
+  FROM counterparty_records GROUP BY trade_id
+)
+SELECT COALESCE(t.trade_id, cp.trade_id) AS trade_id,
+       t.trade_id  IS NULL               AS missing_ours,
+       cp.trade_id IS NULL               AS missing_counterparty,
+       COALESCE(cp.record_count, 0) &gt; 1  AS duplicated,
+       (t.trade_id IS NOT NULL AND cp.trade_id IS NOT NULL
+        AND t.price IS DISTINCT FROM cp.price) AS price_mismatch
+       -- same test for quantity and settlement date
+FROM trades t
+FULL OUTER JOIN cp ON cp.trade_id = t.trade_id
+WHERE t.settlement_date IS NOT NULL   -- our settled trades
+   OR t.trade_id IS NULL;             -- plus their orphans</code></pre>
+      <p class="caption">Abridged from <code>reconciliation/queries.py</code>.</p>
+
+      <p>Three details in that query do most of the work. The counterparty side gets grouped before the join, so a duplicated record shows up as a count of two instead of fanning out into extra rows. It uses <code>IS DISTINCT FROM</code> instead of <code>&lt;&gt;</code>, because <code>NULL &lt;&gt; 5</code> is null, not true, and a plain comparison silently misses exactly the rows reconciliation exists for. And it's a <code>FULL OUTER JOIN</code>, because a trade can exist on only one side.</p>
+
+      <div class="table-wrap">
+        <table class="ruled-table">
+          <caption>The six break types</caption>
+          <thead><tr><th scope="col">Break</th><th scope="col">What it means</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>PRICE_MISMATCH</code></th><td>Both sides have the trade at different prices</td></tr>
+            <tr><th scope="row"><code>QUANTITY_MISMATCH</code></th><td>Same trade, different share count</td></tr>
+            <tr><th scope="row"><code>SETTLEMENT_DATE_MISMATCH</code></th><td>Same trade, different settlement day</td></tr>
+            <tr><th scope="row"><code>MISSING_COUNTERPARTY</code></th><td>We booked it, they have no record</td></tr>
+            <tr><th scope="row"><code>MISSING_OURS</code></th><td>They have a record we never booked</td></tr>
+            <tr><th scope="row"><code>DUPLICATE_COUNTERPARTY</code></th><td>They sent the same trade twice</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Then I moved the stages onto Kafka. Kafka delivers at least once, so the same event can arrive twice. The projector writes a <code>(consumer, event_id)</code> row in the same transaction as its update, so a redelivered event hits the primary key and is skipped. It also rebuilds the trade from its whole log instead of applying the message, so events that arrive out of order still land in the right state.</p>
+      <p>Last came the cloud. I wrote Kubernetes manifests, ran them on a local kind cluster, then used Terraform to stand up EKS, MSK and RDS on AWS. I ran the full demo there, saved the evidence, and tore everything down the same session. It cost about a dollar. Left running, it would have been around $240 a month.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I found</span></h2>
+      <p>The real test was a broker. I placed three orders in an Alpaca paper trading account on a Saturday and booked them in the engine at Friday's closing prices, which is what you'd write down when you place an order. They filled at Monday's open. The engine flagged all three as price breaks and nothing else.</p>
+
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/te-live-breaks.webp" width="1246" height="494" loading="lazy" decoding="async" alt="Bar chart of broker fill minus booked price per share. NVDA buy: booked 225.16, filled 226.73, plus 1.57. AAPL sell: booked 305.94, filled 307.27, plus 1.33. VOO buy: booked 713.59, filled 713.50, minus 0.09.">
+        <figcaption><span class="fig-no">FIG. 02</span>The three live breaks. Each one is ordinary slippage between Friday's close and Monday's open, found without editing either side.</figcaption>
+      </figure>
+
+      <figure class="figure" data-reveal="figure">
+        <div class="well">
+          <img src="../img/te-dashboard.webp" srcset="../img/te-dashboard-700.webp 700w, ../img/te-dashboard.webp 1400w" sizes="(max-width: 720px) calc(100vw - 32px), 680px" width="1400" height="1215" loading="lazy" decoding="async" alt="The engine's dashboard after the live run: 3 trades on the book, all settled, 3 open price mismatch breaks, and a positions table with live prices for NVDA and VOO.">
+        </div>
+        <figcaption><span class="fig-no">FIG. 03</span>The dashboard after that run. Three trades settled, three open breaks.</figcaption>
+      </figure>
+
+      <p>The test suite has 67 tests. Pure logic like the state machine and break classification runs without a database. Service and API tests run against real Postgres in CI. One Kafka round trip test skips itself there because CI has no broker, so CI runs 66.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Add a dead letter topic. Right now a message whose handler always fails blocks its partition forever.</li>
+        <li>Carry a break's status (acknowledged, resolved) across reconciliation runs. Each run is a fresh snapshot today, so that work gets lost.</li>
+        <li>Move database migrations out of gateway startup into a Kubernetes Job, so the gateway can safely run more than one replica.</li>
+        <li>Show short positions. The positions view only handles long ones.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn btn-dark" href="https://github.com/Mohit-web12/trade-lifecycle-engine">Read the code</a>
+        <a class="btn" href="spendgauge.html">Next: SpendGauge</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="../#work">← All work</a>
+      <a href="spendgauge.html">SpendGauge →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>

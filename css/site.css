@@ -1,0 +1,1369 @@
+/* Site styles. Tokens come from tokens.css. */
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Motion tokens. Tune the whole site's motion from here. */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --reveal-dist: 40px;
+  --reveal-dur: 700ms;
+  --stagger: 80ms;
+  --wipe-dur: 950ms;
+}
+
+body {
+  overflow-x: clip; /* safety net: transforms never cause sideways scroll */
+  margin: 0;
+  background: var(--paper);
+  color: var(--graphite);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+}
+
+img, video, svg { display: block; max-width: 100%; height: auto; }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.12;
+  margin: 0;
+}
+
+p { margin: 0 0 1em; text-wrap: pretty; }
+
+/* Links: a faint underline at rest (so links in text never rely on color alone),
+   and a solid one that slides in from left to right on hover. Flex links set --ul-y
+   so the line sits under the text instead of at the bottom of a 44px box. */
+a {
+  --ul-rest: currentColor;
+  color: var(--sage);
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--ul-rest), var(--ul-rest));
+  background-repeat: no-repeat;
+  background-size: 0% 1px, 100% 1px;
+  background-position: 0 var(--ul-y, 100%), 0 var(--ul-y, 100%);
+  transition: background-size 300ms var(--ease-out);
+}
+@supports (color: color-mix(in srgb, red 50%, transparent)) {
+  a { --ul-rest: color-mix(in srgb, currentColor 45%, transparent); }
+}
+a:hover { color: var(--ink); background-size: 100% 1px, 100% 1px; }
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.mono, code, kbd {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}
+
+code { font-size: 0.88em; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -100px;
+  z-index: 10;
+  padding: 10px 14px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  border-radius: var(--radius);
+}
+.skip-link:focus { top: 8px; color: var(--paper); }
+
+.wrap {
+  max-width: calc(var(--max) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* ---------- Labels ---------- */
+.kicker {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--blush);
+  color: var(--blush-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+.tag .pulse {
+  position: relative;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  vertical-align: 0.08em;
+  background: var(--vermilion);
+  border-radius: 1px;
+}
+.tag .pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1px;
+  background: var(--vermilion);
+  opacity: 0;
+}
+.reveal-on .tag .pulse::after { animation: pulse 1.8s ease-out infinite; }
+@keyframes pulse { from { opacity: 0.7; transform: scale(1); } to { opacity: 0; transform: scale(3); } }
+
+.mark {
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--vermilion);
+  vertical-align: 0.12em;
+  margin-right: 8px;
+}
+
+/* ---------- Header ---------- */
+/* Sticky. At the top it's the page itself plus a 1px ink rule. Once scrolled (JS adds
+   .is-scrolled) a tinted layer fades in and the bar shrinks, all with transform and
+   opacity so the header box never changes size (no layout shift). */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  pointer-events: none; /* the box stays 64px tall; only its links take clicks */
+}
+.site-header a, .site-header button { pointer-events: auto; }
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #EFEADE;
+  opacity: 0;
+  transform-origin: 50% 0;
+  transition: opacity 250ms ease-out, transform 300ms var(--ease-out);
+}
+.site-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--ink);
+  transition: transform 300ms var(--ease-out);
+}
+.site-header .site-nav, .site-header .wordmark { transition: transform 300ms var(--ease-out); }
+.site-header .site-nav { transform-origin: 100% 50%; }
+.site-header .wordmark { transform-origin: 0 50%; }
+.site-header.is-scrolled::before { opacity: 1; transform: scaleY(0.84); }
+.site-header.is-scrolled::after { transform: translateY(-10px); }
+.site-header.is-scrolled .site-nav,
+.site-header.is-scrolled .wordmark { transform: translateY(-5px) scale(0.94); }
+
+/* Scrollspy: one underline that slides to the link for the section on screen. */
+.site-nav { position: relative; }
+.nav-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 2px;
+  background: var(--ink);
+  transform-origin: 0 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 450ms var(--ease-out), opacity 200ms ease-out;
+}
+.nav-indicator.is-on { opacity: 1; }
+
+/* Reading progress: a thin accent bar across the very top. */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: 3px;
+  background: var(--vermilion);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+[id] { scroll-margin-top: 84px; }
+
+.site-header .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 24px;
+  min-height: 64px;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  background-image: none;
+}
+.wordmark:hover { color: var(--ink); }
+
+.site-nav { margin-left: auto; }
+
+.site-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  font-size: 15px;
+  color: var(--graphite);
+  --ul-rest: transparent;
+}
+.site-nav a:hover { color: var(--ink); }
+
+/* Links that are 44px tall flex boxes: put the underline under the text. */
+.site-nav a, .linkrow a, .data-table .open a, .read-link, .crumb, .pager a, .site-footer a {
+  --ul-y: calc(50% + 0.62em);
+}
+
+/* ---------- Buttons ---------- */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch);
+  padding: 0 20px;
+  border: var(--rule);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  background: var(--btn-hover, var(--paper-deep));
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+.btn:hover::before { opacity: 1; }
+.btn:hover { color: var(--ink); }
+
+.btn-dark { background: var(--ink); color: var(--paper); --btn-hover: #0E271F; }
+.btn-dark:hover { color: var(--paper); }
+
+.btn-cta {
+  background: var(--vermilion-dark);
+  border-color: var(--vermilion-dark);
+  color: var(--white);
+  --btn-hover: #9E3112;
+}
+.btn-cta:hover { color: var(--white); }
+/* Shine: a soft light band sweeps across on hover. */
+.btn-cta::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: -60%;
+  width: 40%;
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateX(0) skewX(-20deg);
+  pointer-events: none;
+}
+.btn-cta:hover::after { transform: translateX(420%) skewX(-20deg); transition: transform 700ms var(--ease-out); }
+
+/* ---------- Hero ---------- */
+.hero { padding-top: 72px; padding-bottom: 88px; }
+
+.name {
+  margin: 18px 0 22px;
+  font-size: clamp(60px, 12.5vw, 148px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+.name .w { display: inline-block; white-space: nowrap; }
+.name .ch { display: inline-block; }
+.name .dot { display: inline-block; color: var(--vermilion); transform-origin: 50% 85%; }
+
+.subhead {
+  margin: 0 0 44px;
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: 48px 72px;
+  align-items: start;
+}
+
+.lede {
+  max-width: 34em;
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--graphite);
+}
+
+.facts { margin: 0; }
+.facts div:last-child { border-bottom: var(--rule-light); } /* rides in with the last row */
+.facts div {
+  display: grid;
+  grid-template-columns: 7.5em 1fr;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: var(--rule-light);
+}
+.facts div:first-child { border-top: var(--rule); }
+.facts dt {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sage);
+  padding-top: 2px;
+}
+.facts dd { margin: 0; font-size: 16px; line-height: 1.45; }
+
+/* ---------- Section heads ---------- */
+.section { padding-bottom: 96px; }
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-top: 14px;
+  margin-bottom: 48px;
+  position: relative;
+}
+.section-head::before, .prose h2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--ink);
+  transform-origin: 0 50%;
+}
+.h-mask { display: inline-block; }
+.section-head h2 { font-size: clamp(30px, 4vw, 40px); letter-spacing: -0.01em; }
+.section-head .count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--sage);
+  white-space: nowrap;
+}
+
+/* ---------- Work entries ---------- */
+.entry-title {
+  margin: 10px 0 20px;
+  font-size: clamp(30px, 3.6vw, 42px);
+  letter-spacing: -0.015em;
+}
+.entry-title a { color: inherit; text-decoration: none; }
+.entry-title a:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+
+.flagship {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  gap: 48px 56px;
+  align-items: start;
+}
+
+.flagship-text p { max-width: 36em; }
+
+.ledger {
+  width: 100%;
+  margin: 28px 0 0;
+  border-collapse: collapse;
+  font-size: 15.5px;
+}
+.ledger caption {
+  text-align: left;
+  padding-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.ledger th, .ledger td {
+  padding: 9px 0;
+  border-bottom: var(--rule-light);
+  vertical-align: baseline;
+}
+.ledger tr:first-child th, .ledger tr:first-child td { border-top: var(--rule); }
+.ledger tr:last-child th, .ledger tr:last-child td { border-bottom: var(--rule); }
+.ledger th { font-weight: 400; text-align: left; padding-right: 16px; }
+.ledger td {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.stack {
+  margin: 14px 0 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--sage);
+}
+
+/* Figures */
+.well {
+  margin: 0;
+  background: var(--placeholder);
+  border: var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.well img, .well video { width: 100%; }
+
+figure { margin: 0; }
+figcaption, .caption {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--graphite);
+}
+.fig-no {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--sage);
+  margin-right: 6px;
+}
+
+/* Module strip */
+.modules { margin-top: 32px; container-type: inline-size; }
+.modules-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+/* 2x2 by default; four across only when the strip is wide enough that
+   "reconciliation" fits on one line (no word ever breaks). */
+.modules ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@container (min-width: 520px) {
+  .modules ol { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.modules li {
+  padding: 10px 10px 12px;
+  border: var(--rule);
+  border-radius: var(--radius);
+  min-height: 84px;
+  background: var(--paper);
+  position: relative;
+  transition: transform 150ms ease-out;
+}
+.modules li::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 18px rgba(20, 53, 43, 0.14);
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+  pointer-events: none;
+}
+.modules li:hover { transform: translateY(-2px); }
+.modules li:hover::after { opacity: 1; }
+.modules .mod-name {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.modules .mod-job {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--graphite);
+}
+.modules li.is-key {
+  background: var(--blush);
+  border: 2px solid var(--vermilion);
+  padding: 9px 9px 11px;
+}
+.modules li.is-key .mod-name,
+.modules li.is-key .mod-job { color: var(--blush-text); }
+
+/* Second entry */
+.secondary {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 32px 32px;
+  align-items: center;
+  margin-top: 96px;
+  padding-top: 40px;
+  border-top: var(--rule-light);
+}
+.secondary .sg-media { grid-column: 1 / 6; }
+.secondary .sg-text { grid-column: 6 / 11; padding-left: 24px; }
+.secondary .entry-title { font-size: clamp(28px, 3vw, 34px); margin-bottom: 14px; }
+
+.demo-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.demo-toggle {
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--sage);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.demo-toggle:hover { color: var(--ink); }
+
+.statline {
+  margin: 18px 0 0;
+  padding: 10px 0;
+  border-top: var(--rule-light);
+  border-bottom: var(--rule-light);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.linkrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 24px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.linkrow a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.note {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--sage);
+}
+
+/* ---------- Data and statistics ---------- */
+.band {
+  background: var(--paper-deep);
+  padding: 72px 0 88px;
+  margin-bottom: 96px;
+}
+.band .section-head { margin-bottom: 32px; }
+
+.table-scroll {
+  position: relative; /* keeps visually hidden text inside the scroll box */
+  overflow-x: auto;
+  overflow-y: hidden; /* rows rise into place without a vertical scrollbar */
+  -webkit-overflow-scrolling: touch;
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+}
+.table-scroll:focus-visible { outline-offset: 4px; }
+
+.data-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.data-table th {
+  padding: 12px 14px 10px 0;
+  border-bottom: var(--rule);
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sage);
+  white-space: nowrap;
+}
+.data-table td {
+  position: relative;
+  z-index: 0;
+  padding: 16px 14px 16px 0;
+  border-bottom: var(--rule-light);
+  vertical-align: top;
+}
+/* Row hover: a lighter band fades in and the result nudges left in the accent.
+   Both are opacity/transform: the accent copy is a layer that cross fades in. */
+.data-table tbody td::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--paper);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+.data-table tbody tr:hover td::before { opacity: 1; }
+.data-table .res { position: relative; display: inline-block; transition: transform 250ms var(--ease-out); }
+.data-table .res-base { transition: opacity 200ms ease-out; }
+.data-table .res::after {
+  content: attr(data-text);
+  content: attr(data-text) / "";
+  position: absolute;
+  inset: 0;
+  white-space: nowrap;
+  color: var(--vermilion-dark);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+  pointer-events: none;
+}
+.data-table tbody tr:hover .res { transform: translateX(-6px); }
+.data-table tbody tr:hover .res-base { opacity: 0; }
+.data-table tbody tr:hover .res::after { opacity: 1; }
+.data-table tr:last-child td { border-bottom: 0; }
+.data-table .tools {
+  width: 9%;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.data-table .project { width: 36%; }
+.data-table .project strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.data-table .project span { display: block; margin-top: 3px; font-size: 14.5px; line-height: 1.45; }
+.data-table .method { width: 27%; font-size: 14.5px; line-height: 1.45; }
+.data-table th.num, .data-table td.num { text-align: right; padding-right: 28px; }
+.data-table td.num {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.data-table .open { width: 1%; white-space: nowrap; padding-right: 0; }
+.data-table .open a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  margin-top: -12px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+
+.also {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px 56px;
+  margin-top: 56px;
+}
+.also-label {
+  display: block;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: var(--rule);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.also h3 { font-size: 23px; font-weight: 500; margin-bottom: 6px; }
+.also p { margin: 0; font-size: 15.5px; max-width: 32em; }
+
+/* Same look as the "Read" links in the data table. */
+.read-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+
+/* ---------- Closing ---------- */
+.closing { padding-bottom: 104px; }
+.closing-line {
+  max-width: 21em;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 4.4vw, 50px);
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.closing .actions { margin-top: 36px; }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 36px 0 40px;
+}
+.site-footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 32px;
+}
+.site-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.site-footer a:hover { color: var(--blush); }
+.site-footer :focus-visible { outline-color: var(--paper); }
+.site-footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-footer small {
+  flex-basis: 100%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--blush);
+}
+
+/* ---------- Write up pages ---------- */
+.writeup { padding-top: 56px; padding-bottom: 96px; }
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+
+.writeup-head { margin: 20px 0 40px; }
+.writeup-head h1 {
+  margin: 12px 0 0;
+  font-size: clamp(40px, 6vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+.writeup-head .lede { margin-top: 20px; max-width: 34em; }
+
+.summary-table {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 0 56px;
+  border-collapse: collapse;
+  font-size: 15.5px;
+}
+.summary-table th, .summary-table td {
+  padding: 9px 0;
+  border-bottom: var(--rule-light);
+  vertical-align: baseline;
+  text-align: left;
+}
+.summary-table tr:first-child th, .summary-table tr:first-child td { border-top: var(--rule); }
+.summary-table tr:last-child th, .summary-table tr:last-child td { border-bottom: var(--rule); }
+.summary-table th {
+  width: 9.5em;
+  padding-right: 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.summary-table td.num { font-family: var(--font-mono); font-weight: 500; color: var(--ink); }
+
+.prose { max-width: 680px; }
+.prose h2 {
+  position: relative;
+  margin: 56px 0 16px;
+  padding-top: 12px;
+  font-size: 30px;
+  letter-spacing: -0.01em;
+}
+.prose h2:first-child { margin-top: 0; }
+.prose h3 { margin: 32px 0 10px; font-size: 22px; font-weight: 500; }
+.prose ul, .prose ol { padding-left: 1.2em; margin: 0 0 1em; }
+.prose li { margin-bottom: 6px; }
+.prose li::marker { color: var(--sage); }
+
+.prose .figure { margin: 32px 0 36px; }
+.prose .chart img { width: 100%; border-top: var(--rule); padding-top: 14px; }
+.prose .figure.wide { width: min(900px, calc(100vw - 2 * var(--gutter))); }
+
+.diagram-scroll {
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+  padding: 12px 0;
+}
+.diagram-scroll svg { width: 100%; min-width: 660px; height: auto; }
+.dg-frame { fill: none; stroke: rgba(20, 53, 43, 0.3); stroke-width: 1; }
+.dg-box { fill: var(--paper); stroke: var(--ink); stroke-width: 1; }
+.dg-sub { fill: var(--paper-deep); stroke: rgba(20, 53, 43, 0.4); stroke-width: 1; }
+.dg-llm { fill: var(--blush); stroke: var(--ink); stroke-width: 1; }
+.dg-check { fill: var(--paper); stroke: var(--ink); stroke-width: 1; stroke-dasharray: 4 3; }
+.dg-line { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.dg-dash { fill: none; stroke: var(--sage); stroke-width: 1.1; stroke-dasharray: 4 3; }
+.dg-title { font-family: var(--font-sans); font-size: 14px; font-weight: 600; fill: var(--ink); }
+.dg-mono { font-family: var(--font-mono); font-size: 11.5px; fill: var(--ink); }
+.dg-mono-b { font-family: var(--font-mono); font-size: 12px; font-weight: 500; fill: var(--ink); }
+.dg-text { font-family: var(--font-sans); font-size: 11.5px; fill: var(--graphite); }
+.dg-note { font-family: var(--font-mono); font-size: 10.5px; fill: var(--sage); }
+.dg-llm-text { font-family: var(--font-sans); font-size: 11.5px; fill: var(--blush-text); }
+
+.num-inline { font-family: var(--font-mono); font-size: 0.92em; color: var(--ink); white-space: nowrap; }
+
+.ruled-table {
+  width: 100%;
+  margin: 20px 0 28px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.ruled-table caption {
+  text-align: left;
+  padding-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.ruled-table th, .ruled-table td {
+  padding: 8px 12px 8px 0;
+  border-bottom: var(--rule-light);
+  text-align: left;
+  vertical-align: baseline;
+}
+.ruled-table thead th {
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.ruled-table tbody tr:last-child th, .ruled-table tbody tr:last-child td { border-bottom: var(--rule); }
+.ruled-table .num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.ruled-table th.num { font-weight: 500; color: var(--sage); }
+.ruled-table tbody th { font-weight: 400; }
+.ruled-table code { font-size: 13px; }
+
+.table-wrap { overflow-x: auto; }
+
+pre {
+  margin: 20px 0 28px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  background: var(--paper-deep);
+  border: var(--rule-light);
+  border-left: 2px solid var(--ink);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--graphite);
+}
+pre code { font-size: inherit; }
+
+.next-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin-top: 72px;
+  padding-top: 14px;
+  border-top: var(--rule);
+}
+.pager a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.notfound { padding-top: 96px; padding-bottom: 120px; }
+.notfound h1 { font-size: clamp(44px, 8vw, 88px); letter-spacing: -0.03em; }
+.notfound p { margin-top: 20px; max-width: 30em; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .secondary .sg-media { grid-column: 1 / 7; }
+  .secondary .sg-text { grid-column: 7 / 13; padding-left: 0; }
+}
+
+@media (max-width: 860px) {
+  .hero { padding-top: 48px; padding-bottom: 64px; }
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .flagship { grid-template-columns: minmax(0, 1fr); }
+  .secondary { margin-top: 72px; }
+  .secondary .sg-media, .secondary .sg-text { grid-column: 1 / -1; }
+  .also { grid-template-columns: minmax(0, 1fr); }
+  .section { padding-bottom: 72px; }
+  .band { padding: 56px 0 64px; margin-bottom: 72px; }
+}
+
+@media (max-width: 560px) {
+  body { font-size: 16.5px; }
+  .site-header .wrap { padding-top: 6px; padding-bottom: 6px; }
+  .site-nav ul { gap: 0 13px; }
+  .site-nav a { font-size: 14px; }
+  .lede { font-size: 18px; }
+  .facts div { grid-template-columns: 6.5em 1fr; }
+  .summary-table th { width: 7.5em; }
+  .break-grid th, .break-grid td { padding-left: 7px; padding-right: 7px; }
+  .break-grid .ours, .break-grid .theirs { font-size: 13px; }
+}
+
+/* ---------- Motion ---------- */
+/* Every hidden starting state lives under .reveal-on, a class on <html> that the inline
+   <head> script adds (skipped for reduced motion) and removes again if site.js never
+   runs. No JS, or reduced motion, means everything simply shows.
+   Timings and distances come from the tokens at the top of this file. */
+
+/* Plain reveal: fade up. [data-reveal] with no value, or any child of
+   [data-reveal-children] that doesn't have its own reveal type. */
+.reveal-on [data-reveal=""]:not(.is-revealed),
+.reveal-on [data-reveal-children] > :not([data-reveal]):not(.is-revealed) {
+  opacity: 0;
+  transform: translateY(var(--reveal-dist));
+}
+.reveal-on [data-reveal=""].is-revealing,
+.reveal-on [data-reveal-children] > .is-revealing:not([data-reveal]) {
+  transition: opacity var(--reveal-dur) var(--ease-out), transform var(--reveal-dur) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* Headings: the rule above draws left to right, then the text rises from behind a mask. */
+.reveal-on [data-reveal="heading"] h2,
+.reveal-on h2[data-reveal="heading"] { clip-path: inset(-0.3em -0.2em -0.3em -0.2em); }
+.reveal-on [data-reveal="heading"]:not(.is-revealed)::before { transform: scaleX(0); }
+.reveal-on [data-reveal="heading"]:not(.is-revealed) .h-mask { transform: translateY(140%); }
+.reveal-on [data-reveal="heading"]:not(.is-revealed) .count { opacity: 0; transform: translateY(12px); }
+.reveal-on [data-reveal="heading"].is-revealing::before {
+  transition: transform 800ms var(--ease-out) var(--reveal-delay, 0ms);
+}
+.reveal-on [data-reveal="heading"].is-revealing .h-mask {
+  transition: transform var(--reveal-dur) var(--ease-out) calc(var(--reveal-delay, 0ms) + 280ms);
+}
+.reveal-on [data-reveal="heading"].is-revealing .count {
+  transition: opacity 500ms ease-out calc(var(--reveal-delay, 0ms) + 520ms),
+              transform 500ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 520ms);
+}
+
+/* Figures: the image wipes in left to right while settling from 1.04 to 1, then the
+   caption fades up. */
+.reveal-on [data-reveal="figure"] > .well,
+.reveal-on [data-reveal="figure"] > img,
+.reveal-on [data-reveal="figure"] > .diagram-scroll { clip-path: inset(-8px -8px -8px -8px); }
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > .well,
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > img,
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > .diagram-scroll { clip-path: inset(-8px 100% -8px -8px); }
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > .well > img,
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > .well > video,
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > img { transform: scale(1.04); }
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > figcaption,
+.reveal-on [data-reveal="figure"]:not(.is-revealed) > .demo-controls { opacity: 0; transform: translateY(16px); }
+.reveal-on [data-reveal="figure"].is-revealing > .well,
+.reveal-on [data-reveal="figure"].is-revealing > .diagram-scroll {
+  transition: clip-path var(--wipe-dur) var(--ease-out) var(--reveal-delay, 0ms);
+}
+.reveal-on [data-reveal="figure"].is-revealing > .well > img,
+.reveal-on [data-reveal="figure"].is-revealing > .well > video {
+  transition: transform 1200ms var(--ease-out) var(--reveal-delay, 0ms);
+}
+.reveal-on [data-reveal="figure"].is-revealing > img {
+  transition: clip-path var(--wipe-dur) var(--ease-out) var(--reveal-delay, 0ms),
+              transform 1200ms var(--ease-out) var(--reveal-delay, 0ms);
+}
+.reveal-on [data-reveal="figure"].is-revealing > figcaption,
+.reveal-on [data-reveal="figure"].is-revealing > .demo-controls {
+  transition: opacity 600ms ease-out calc(var(--reveal-delay, 0ms) + 350ms),
+              transform 600ms var(--ease-out) calc(var(--reveal-delay, 0ms) + 350ms);
+}
+
+/* Gentle parallax on the two homepage images; site.js sets --py (a few px). */
+[data-parallax] { transform: translate3d(0, var(--py, 0px), 0); }
+
+/* Closing headline: site.js splits it into lines, each rising from behind a mask. */
+.closing-line .line { display: block; clip-path: inset(-0.2em -0.6em -0.3em -0.6em); }
+.closing-line .line-inner { display: inline-block; }
+.reveal-on [data-reveal="lines"]:not(.is-split):not(.is-revealed) { opacity: 0; }
+.reveal-on [data-reveal="lines"]:not(.is-revealed) .line-inner { transform: translateY(140%); }
+.reveal-on [data-reveal="lines"].is-revealing .line-inner {
+  transition: transform 900ms var(--ease-out);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--line, 0) * 120ms);
+}
+
+/* Hero, on load: letters rise one by one, the period pops with a small overshoot,
+   then the subhead, intro and side panel rows follow. About 1.6s in total. */
+.reveal-on .hero .kicker { animation: rise 600ms var(--ease-out) both; }
+.reveal-on .name .ch { animation: letter-in 650ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 32ms); }
+.reveal-on .name .dot { animation: dot-pop 520ms ease-out 700ms both; }
+.reveal-on .hero .subhead { animation: rise 650ms var(--ease-out) 640ms both; }
+.reveal-on .hero .lede { animation: rise 650ms var(--ease-out) 760ms both; }
+.reveal-on .hero .facts > div { animation: rise 520ms var(--ease-out) both; }
+.reveal-on .hero .facts > div:nth-child(1) { animation-delay: 860ms; }
+.reveal-on .hero .facts > div:nth-child(2) { animation-delay: 940ms; }
+.reveal-on .hero .facts > div:nth-child(3) { animation-delay: 1020ms; }
+.reveal-on .hero .facts > div:nth-child(4) { animation-delay: 1100ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(var(--reveal-dist)); } to { opacity: 1; transform: none; } }
+@keyframes letter-in { from { opacity: 0; transform: translateY(0.35em); } to { opacity: 1; transform: none; } }
+@keyframes dot-pop {
+  0% { opacity: 0; transform: scale(0); }
+  60% { opacity: 1; transform: scale(1.35); }
+  80% { transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Count ups: when a number lands, an accent copy of it flashes over it and fades. */
+[data-count] { position: relative; }
+.count-flash::after {
+  content: attr(data-final);
+  content: attr(data-final) / "";
+  position: absolute;
+  inset: 0;
+  white-space: nowrap;
+  text-align: inherit;
+  color: var(--vermilion-dark);
+  pointer-events: none;
+  animation: count-flash 900ms ease-out both;
+}
+@keyframes count-flash { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Page transitions: a quick cross fade between pages (View Transitions), with a JS
+   fade fallback (.pt-fade / .is-leaving) where cross document transitions aren't supported. */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: vt-out 180ms ease-in both; }
+::view-transition-new(root) { animation: vt-in 320ms var(--ease-out) both; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; } }
+.pt-fade body { animation: vt-in 320ms ease-out backwards; }
+.is-leaving body { opacity: 0; transition: opacity 180ms ease-in; }
+
+/* ---------- How a break is caught (work/trade-engine.html) ---------- */
+.break-demo { border-top: var(--rule); padding-top: 18px; overflow-x: clip; overflow-clip-margin: 8px; }
+.break-demo.is-armed { cursor: pointer; }
+.break-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+.break-grid th, .break-grid td { padding: 8px 12px; text-align: left; vertical-align: middle; }
+.break-grid thead th {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.break-grid thead th .sub {
+  display: block;
+  margin-top: 2px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--graphite);
+}
+.break-grid .field {
+  width: 1%;
+  padding-left: 0;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.break-grid .ours, .break-grid .theirs {
+  position: relative;
+  z-index: 0;
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--paper);
+  border-left: var(--rule);
+  border-right: var(--rule);
+  border-top: var(--rule-light);
+}
+.break-grid thead .ours, .break-grid thead .theirs { background: var(--paper-deep); border-top: var(--rule); }
+.break-grid tbody tr:last-child .ours, .break-grid tbody tr:last-child .theirs { border-bottom: var(--rule); }
+.break-grid .match {
+  width: 44px;
+  padding-left: 4px;
+  padding-right: 4px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--sage);
+}
+.break-grid .match .sym { display: inline-block; }
+/* The flagged price cells: a blush layer with an accent ring, plus a brighter flash
+   layer on top of it. Separate layers, so the animation only touches opacity. */
+.break-grid .is-break .ours, .break-grid .is-break .theirs { color: var(--blush-text); }
+.break-grid .is-break .ours::before, .break-grid .is-break .theirs::before,
+.break-grid .is-break .ours::after, .break-grid .is-break .theirs::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.break-grid .is-break .ours::before, .break-grid .is-break .theirs::before {
+  background: var(--blush);
+  box-shadow: inset 0 0 0 2px var(--vermilion);
+}
+.break-grid .is-break .ours::after, .break-grid .is-break .theirs::after {
+  background: #F4A988;
+  box-shadow: inset 0 0 0 3px var(--vermilion);
+  opacity: 0;
+}
+.break-grid .is-break .match .sym {
+  padding: 0 6px;
+  background: var(--blush);
+  color: var(--blush-text);
+  border-radius: var(--radius);
+}
+
+.break-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 16px;
+}
+.break-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: var(--blush);
+  border: 2px solid var(--vermilion);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--blush-text);
+}
+.break-tag .mark { margin: 0; }
+.break-detail { font-family: var(--font-mono); font-size: 13px; color: var(--graphite); }
+.break-replay { margin-left: auto; }
+
+/* Starting state is set by JS (.is-armed), so without JS the final state shows. */
+.break-demo.is-armed .ours,
+.break-demo.is-armed .theirs,
+.break-demo.is-armed .match .sym,
+.break-demo.is-armed .break-tag,
+.break-demo.is-armed .break-detail { opacity: 0; }
+.break-demo.is-armed .is-break .ours::before,
+.break-demo.is-armed .is-break .theirs::before { opacity: 0; }
+
+.break-demo.is-playing .ours {
+  animation: bd-from-left 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--r, 0) * 70ms);
+}
+.break-demo.is-playing .theirs {
+  animation: bd-from-right 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(140ms + var(--r, 0) * 120ms);
+}
+.break-demo.is-playing .match .sym {
+  animation: bd-pop 320ms ease-out both;
+  animation-delay: calc(780ms + var(--r, 0) * 230ms);
+}
+.break-demo.is-playing .is-break .ours::before,
+.break-demo.is-playing .is-break .theirs::before {
+  animation: bd-fade 250ms ease-out both;
+  animation-delay: calc(880ms + var(--r, 0) * 230ms);
+}
+.break-demo.is-playing .is-break .ours::after,
+.break-demo.is-playing .is-break .theirs::after {
+  animation: bd-flash 900ms ease-out both;
+  animation-delay: calc(880ms + var(--r, 0) * 230ms);
+}
+.break-demo.is-playing .break-tag { animation: bd-drop 480ms cubic-bezier(0.34, 1.56, 0.64, 1) 1850ms both; }
+.break-demo.is-playing .break-detail { animation: bd-fade 400ms ease-out 2050ms both; }
+
+@keyframes bd-from-left { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@keyframes bd-from-right { from { opacity: 0; transform: translate(24px, 10px); } to { opacity: 1; transform: none; } }
+@keyframes bd-pop {
+  from { opacity: 0; transform: scale(0.4); }
+  60% { opacity: 1; transform: scale(1.15); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bd-flash {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  45% { opacity: 0.15; }
+  65% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes bd-drop { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+@keyframes bd-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Reduced motion ---------- */
+/* Everything lands in its final state at once. No parallax, no progress bar, no
+   count ups (site.js skips those), no page fades, nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  html:not(.force-motion) *,
+  html:not(.force-motion) *::before,
+  html:not(.force-motion) *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  html:not(.force-motion) [data-parallax] { transform: none !important; }
+  html:not(.force-motion) .scroll-progress,
+  html:not(.force-motion) .btn-cta::after,
+  html:not(.force-motion) .tag .pulse::after { display: none; }
+  html.reveal-on:not(.force-motion) [data-reveal],
+  html.reveal-on:not(.force-motion) [data-reveal-children] > *,
+  html.reveal-on:not(.force-motion) [data-reveal] .h-mask,
+  html.reveal-on:not(.force-motion) [data-reveal] .line-inner,
+  html.reveal-on:not(.force-motion) [data-reveal] .count,
+  html.reveal-on:not(.force-motion) [data-reveal] > .well,
+  html.reveal-on:not(.force-motion) [data-reveal] > img,
+  html.reveal-on:not(.force-motion) [data-reveal] > figcaption {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+  html:not(.force-motion) .break-demo.is-armed .ours,
+  html:not(.force-motion) .break-demo.is-armed .theirs,
+  html:not(.force-motion) .break-demo.is-armed .match .sym,
+  html:not(.force-motion) .break-demo.is-armed .break-tag,
+  html:not(.force-motion) .break-demo.is-armed .break-detail { opacity: 1 !important; }
+  html:not(.force-motion) .modules li:hover,
+  html:not(.force-motion) .data-table tbody tr:hover .res { transform: none; }
+}

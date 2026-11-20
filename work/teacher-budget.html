@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>First year teacher budget · Mohit Chander</title>
+  <meta name="description" content="Can a first year Philadelphia teacher on $57,444 afford to live alone? A sourced Excel model of take home pay, costs and scenarios: $38 short a month alone, $630 left over with a roommate.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/teacher-budget.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="First year teacher budget">
+  <meta property="og:description" content="Can a new Philadelphia teacher on $57,444 afford to live alone?">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/teacher-budget.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#data">← Data and statistics</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">Data and statistics / Excel</span>
+      <h1>First year teacher budget</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Context</th><td>IBM SkillsBuild micro internship with Teach For America, through Parker Dewey</td></tr>
+        <tr><th scope="row">Tools</th><td>Excel: inputs, take home pay, budget, charts, and a checks tab</td></tr>
+        <tr><th scope="row">Result</th><td>Living alone: <span class="num-inline" data-count>$38</span> short a month. With a roommate: <span class="num-inline" data-count>$630</span> left over.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>Can a first year teacher in Philadelphia afford to live alone? The teacher in my model starts at $57,444, the 2026 to 2027 salary for a ten month teacher with a bachelor's degree. They're single, rent a one bedroom inside the city, take SEPTA instead of driving, and pay for a two year certification program out of pocket.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I did</span></h2>
+      <p><strong>Gross to net.</strong> I worked down from the salary schedule one deduction at a time: the 8.25% pension contribution, 1.5% for medical, union dues, 7.65% FICA, federal tax with the 2026 brackets and standard deduction, 3.07% Pennsylvania tax, and Philadelphia's 3.735% wage tax. That leaves $3,190 a month, about two thirds of gross.</p>
+      <p><strong>Costs, each with a source.</strong> Rent is Zumper's October 2026 average for a one bedroom, $1,414. Utilities come from PECO, PGW and water department rates, scaled down to a one bedroom. Food is the USDA low cost plan. Certification is the cheapest program on the partner list, $16,150 over two years, which works out to $687 a month with fees. Every input on the Inputs tab has its source and the date I last checked it.</p>
+      <p><strong>Scenarios.</strong> Two changes, one at a time: split a two bedroom with a roommate, or teach 100 hours of summer school.</p>
+      <p><strong>Checks.</strong> A separate tab runs 14 checks. Each one computes a number a second, independent way, like net pay rebuilt from every deduction listed separately, or the weekly food cost converted to monthly. All 14 pass. I used Claude to suggest categories and poke holes in my first draft, but I didn't take a number from it without opening the source myself. Twice its summary of a source was wrong, and I used the original figure.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I found</span></h2>
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/tb-where.webp" width="1441" height="604" loading="lazy" decoding="async" alt="Bar chart of monthly costs against $3,190 take home pay. Rent $1,414, 44%. Certification $687, 22%. Groceries $357, 11%. Utilities and internet $262, 8%. Other essentials $200, 6%. Savings target $150, 5%. SEPTA pass $116, 4%. Phone and insurance $42, 1%.">
+        <figcaption><span class="fig-no">FIG. 01</span>Where the $3,190 goes. Rent and certification take two thirds of it.</figcaption>
+      </figure>
+      <p>Spending, including a $150 savings target, comes to $3,228, so living alone runs $38 short every month. A roommate in a two bedroom frees up about $668, leaving $630 over. Summer school adds about $258 a month after tax, leaving $220.</p>
+      <p>Paychecks make it tighter than the average suggests. The salary comes in 26 biweekly checks, so ten months get two checks ($2,944) and run about $284 short, and two months get three. On top of that, the teacher needs about $3,774 up front for the first month's rent, a deposit and basic setup.</p>
+
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/tb-rent.webp" width="1259" height="607" loading="lazy" decoding="async" alt="Line chart of money left over each month against one bedroom rent. At $1,000 rent there is $376 left; at $1,800 the teacher is $424 short. The line crosses zero at $1,376. The Zumper average of $1,414 leaves the teacher $38 short.">
+        <figcaption><span class="fig-no">FIG. 02</span>How rent changes the answer, with everything else held fixed. Living alone breaks even at $1,376.</figcaption>
+      </figure>
+      <p>Living alone works only with no loan payments and no surprises. Any student loan payment comes straight out of a budget that's already negative, and rent at Rentometer's $1,650 median would cost $236 more a month.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Replace my weakest assumption, that a one bedroom uses about half the gas and water of a typical household, with real bills from listings.</li>
+        <li>Add a scenario with a student loan payment, since any payment comes straight out of the surplus.</li>
+        <li>Update the gas cost when 2026 numbers are out. The model uses PGW's 2025 average.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn" href="../#data">Back to data and statistics</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="agentic-workflow.html">← Agentic financial workflow</a>
+      <a href="trade-engine.html">Trade engine →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>

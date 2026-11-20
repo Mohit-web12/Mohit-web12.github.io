@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SpendGauge · Mohit Chander</title>
+  <meta name="description" content="SpendGauge is a deployed personal finance dashboard: a FastAPI backend with 20 endpoints, a CSV importer that categorizes and dedupes transactions, and a React front end on Render.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/spendgauge.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="SpendGauge">
+  <meta property="og:description" content="A deployed personal finance dashboard with a CSV importer that never double counts.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/spendgauge.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#work">← All work</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">02 / Deployed app</span>
+      <h1>SpendGauge</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Stack</th><td>FastAPI, SQLAlchemy, SQLite, React, Recharts, JWT, Docker, Render</td></tr>
+        <tr><th scope="row">Size</th><td><span class="num-inline" data-count>20</span> endpoints, <span class="num-inline" data-count>63</span> tests, <span class="num-inline" data-count>95%</span> coverage on core logic</td></tr>
+        <tr><th scope="row">Live</th><td><a href="https://fin-dash-web.onrender.com">fin-dash-web.onrender.com</a> (the free server can take up to a minute to wake up)</td></tr>
+        <tr><th scope="row">Code</th><td><a href="https://github.com/Mohit-web12/fin-dash">github.com/Mohit-web12/fin-dash</a></td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>I wanted one place to see where my money goes each month without typing in every transaction. Banks export CSV files, so the app had to take a CSV, figure out what each row is, and never double count anything if the same file gets uploaded twice.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I did</span></h2>
+      <p>The backend is FastAPI with SQLAlchemy over SQLite. Every route except login and the health check needs a JWT.</p>
+
+      <div class="table-wrap">
+        <table class="ruled-table">
+          <caption>The 20 endpoints</caption>
+          <thead><tr><th scope="col">Area</th><th scope="col">Routes</th><th scope="col" class="num">Count</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Auth and health</th><td>login, current user, health check</td><td class="num">3</td></tr>
+            <tr><th scope="row">Accounts</th><td>list, create</td><td class="num">2</td></tr>
+            <tr><th scope="row">Transactions</th><td>list with filters and paging, create, read, update, delete</td><td class="num">5</td></tr>
+            <tr><th scope="row">CSV import</th><td><code>POST /ingest/csv</code></td><td class="num">1</td></tr>
+            <tr><th scope="row">Budgets</th><td>list, set, delete</td><td class="num">3</td></tr>
+            <tr><th scope="row">Summary</th><td>spend by category, monthly totals, budget vs actual</td><td class="num">1</td></tr>
+            <tr><th scope="row">Investments</th><td>positions, breaks, trades, place order, reset demo</td><td class="num">5</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The importer is the part I care about most. It reads the file with pandas, normalizes the headers, and sorts each row into a category with merchant rules, so Uber lands in Transport and Whole Foods in Groceries. Then it builds a dedupe key for every row: a SHA256 hash of the user, the date, the amount rounded to cents, and the merchant in lowercase. It loads the user's existing keys once per upload instead of querying per row, skips anything it has already seen, and reports what it inserted, what it skipped, and which rows had errors.</p>
+      <p>The front end is React with Recharts: three gauges for spend, income and net, a monthly trend, and budgets against actual spending. It's deployed on Render from one <code>render.yaml</code>, with the API as a Docker service and the front end as a static site.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I found</span></h2>
+      <figure class="figure" data-reveal="figure">
+        <div class="well">
+          <video width="800" height="600" controls muted playsinline preload="none" poster="../img/spendgauge-poster.webp" aria-describedby="sg-cap">
+            <source src="../img/spendgauge-demo.mp4" type="video/mp4">
+          </video>
+        </div>
+        <figcaption id="sg-cap"><span class="fig-no">FIG. 01</span>Importing the same six row CSV twice. The first upload inserts 6, the second inserts 0 and skips 6 as duplicates, and Spend moves from $2,584 to $2,881.</figcaption>
+      </figure>
+
+      <p>Render's free plan wipes the SQLite file on every deploy and restart. Without a fix, anyone opening the demo would log in to empty gauges. So the demo account reseeds six months of history on boot. It uses a fixed random seed, so the demo looks the same every time, and dates relative to the current month, so it always opens on recent data.</p>
+      <p>The Investments page reads from my trade engine through a server to server proxy. The engine has no auth of its own, so SpendGauge's JWT is what guards it. When no engine is connected, like on Render, the page serves its own demo data instead of an error.</p>
+
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/sg-tests.webp" width="1396" height="540" loading="lazy" decoding="async" alt="Bar chart of tests per area: Investments 16, CSV import 11, Transactions 11, Demo seed 9, Summary and budgets 9, Auth 7. 63 in total.">
+        <figcaption><span class="fig-no">FIG. 02</span>Where the 63 tests go. The importer has 11 of its own, covering bad dates, bad amounts, missing columns, repeat uploads, and duplicates inside one file.</figcaption>
+      </figure>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Move from SQLite to Postgres, so real users' data survives a restart instead of only the demo's.</li>
+        <li>Let people fix a category once and have the app remember it for that merchant.</li>
+        <li>Host the trade engine next to the app, so the live Investments page shows real breaks.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn btn-dark" href="https://fin-dash-web.onrender.com">Open the live demo</a>
+        <a class="btn" href="https://github.com/Mohit-web12/fin-dash">Read the code</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="trade-engine.html">← Trade engine</a>
+      <a href="malibu-housing.html">Malibu housing prices →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>

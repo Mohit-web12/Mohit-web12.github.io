@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic financial workflow · Mohit Chander</title>
+  <meta name="description" content="In progress: a five stage pipeline on AWS where Llama 3.1 on Bedrock sorts bank transactions, Python checks every answer, and pandas does all the math.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/agentic-workflow.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Agentic financial workflow">
+  <meta property="og:description" content="A five stage pipeline where an LLM sorts bank transactions and pandas does the math. In progress.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/agentic-workflow.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#data">← Data and statistics</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">Data and statistics / Python, AWS</span>
+      <h1>Agentic financial workflow</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Status</th><td><span class="tag"><span class="pulse" aria-hidden="true"></span>in progress</span> The design is done. The build is next.</td></tr>
+        <tr><th scope="row">Tools</th><td>Python (boto3, pandas, jsonschema), Amazon Bedrock, S3, IAM, CloudWatch</td></tr>
+        <tr><th scope="row">Model</th><td>Meta Llama 3.1 8B Instruct, through the Converse API</td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>Can a language model handle the fuzzy part of personal finance, deciding what each transaction is, while plain code handles everything that has to be exact? I'm building a small pipeline on AWS to find out. I'm doing all of it myself: the prompts, the data schema and validation, the AWS setup, the KPIs, and the write up.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I've done so far</span></h2>
+      <p>Phase one is the design. A Python script reads a CSV of transactions from S3 and runs five stages in order. Only three of them call the model.</p>
+
+      <figure class="figure wide" data-reveal="figure">
+        <div class="diagram-scroll" role="region" aria-label="Architecture diagram, scrolls sideways on small screens" tabindex="0">
+          <svg viewBox="0 0 760 486" role="img" aria-labelledby="dg-title dg-desc" xmlns="http://www.w3.org/2000/svg">
+            <title id="dg-title">Agentic financial workflow architecture on AWS</title>
+            <desc id="dg-desc">A Python orchestrator reads transactions.csv from an S3 bucket and runs five stages: Plan, Act, a validation check that retries Act when the JSON is invalid, Observe, Summarize and Reflect. Act, Summarize and Reflect call Llama 3.1 8B on Amazon Bedrock. Observe computes KPIs in pandas without the model. All outputs are written back to S3. An IAM role grants S3 and Bedrock access, and CloudWatch keeps the run logs.</desc>
+            <defs>
+              <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#14352B"/>
+              </marker>
+            </defs>
+
+            <rect class="dg-frame" x="8" y="8" width="744" height="428" rx="2"/>
+            <text class="dg-note" x="22" y="28">AWS · us-east-1</text>
+
+            <!-- S3 -->
+            <rect class="dg-box" x="24" y="48" width="176" height="316" rx="2"/>
+            <text class="dg-title" x="36" y="74">Amazon S3</text>
+            <text class="dg-note" x="36" y="92">project bucket</text>
+            <rect class="dg-sub" x="36" y="104" width="152" height="78" rx="2"/>
+            <text class="dg-mono-b" x="46" y="125">data/</text>
+            <text class="dg-mono" x="46" y="145">transactions.csv</text>
+            <text class="dg-note" x="46" y="166">date, merchant, amount</text>
+            <rect class="dg-sub" x="36" y="198" width="152" height="152" rx="2"/>
+            <text class="dg-mono-b" x="46" y="219">outputs/</text>
+            <text class="dg-mono" x="46" y="242">plan.json</text>
+            <text class="dg-mono" x="46" y="263">categorized.json</text>
+            <text class="dg-mono" x="46" y="284">kpis.json</text>
+            <text class="dg-mono" x="46" y="305">summary.txt</text>
+            <text class="dg-mono" x="46" y="326">reflection.txt</text>
+
+            <!-- Orchestrator -->
+            <rect class="dg-box" x="236" y="48" width="300" height="316" rx="2"/>
+            <text class="dg-title" x="248" y="74">Python orchestrator</text>
+            <text class="dg-note" x="248" y="92">main.py · boto3, pandas, jsonschema</text>
+
+            <rect class="dg-box" x="262" y="104" width="230" height="34" rx="2"/>
+            <text class="dg-note" x="272" y="125">1</text><text class="dg-mono-b" x="286" y="125">Plan</text>
+            <text class="dg-text" x="362" y="125">load CSV, write plan</text>
+
+            <rect class="dg-llm" x="262" y="146" width="230" height="34" rx="2"/>
+            <text class="dg-note" x="272" y="167">2</text><text class="dg-mono-b" x="286" y="167">Act</text>
+            <text class="dg-llm-text" x="362" y="167">model sorts each row</text>
+
+            <rect class="dg-check" x="262" y="188" width="230" height="34" rx="2"/>
+            <text class="dg-mono-b" x="286" y="209">Validate</text>
+            <text class="dg-text" x="362" y="209">check JSON, else retry</text>
+            <path class="dg-line" d="M262,205 H248 V163 H258" marker-end="url(#ah)"/>
+
+            <rect class="dg-box" x="262" y="230" width="230" height="34" rx="2"/>
+            <text class="dg-note" x="272" y="251">3</text><text class="dg-mono-b" x="286" y="251">Observe</text>
+            <text class="dg-text" x="362" y="251">KPIs in pandas only</text>
+
+            <rect class="dg-llm" x="262" y="272" width="230" height="34" rx="2"/>
+            <text class="dg-note" x="272" y="293">4</text><text class="dg-mono-b" x="286" y="293">Summarize</text>
+            <text class="dg-llm-text" x="362" y="293">model writes summary</text>
+
+            <rect class="dg-llm" x="262" y="314" width="230" height="34" rx="2"/>
+            <text class="dg-note" x="272" y="335">5</text><text class="dg-mono-b" x="286" y="335">Reflect</text>
+            <text class="dg-llm-text" x="362" y="335">model lists limits</text>
+
+            <!-- Bedrock -->
+            <rect class="dg-box" x="572" y="48" width="168" height="316" rx="2"/>
+            <text class="dg-title" x="584" y="74">Amazon Bedrock</text>
+            <rect class="dg-sub" x="584" y="104" width="144" height="78" rx="2"/>
+            <text class="dg-note" x="594" y="125">model</text>
+            <text class="dg-mono-b" x="594" y="145">Llama 3.1 8B</text>
+            <text class="dg-text" x="594" y="166">Instruct, Converse API</text>
+            <rect class="dg-sub" x="584" y="198" width="144" height="152" rx="2"/>
+            <text class="dg-note" x="594" y="219">prompts</text>
+            <text class="dg-mono" x="594" y="242">categorize</text>
+            <text class="dg-mono" x="594" y="263">summarize</text>
+            <text class="dg-mono" x="594" y="284">reflect</text>
+            <text class="dg-note" x="594" y="310">temperature 0</text>
+            <text class="dg-note" x="594" y="331">JSON only output</text>
+
+            <!-- Data flow -->
+            <path class="dg-line" d="M188,143 C220,143 226,121 258,121" marker-end="url(#ah)"/>
+            <text class="dg-note" x="202" y="160">read</text>
+            <path class="dg-line" d="M262,289 H236 M236,289 C214,289 214,274 192,274" marker-end="url(#ah)"/>
+            <text class="dg-note" x="200" y="304">write</text>
+
+            <path class="dg-line" d="M496,163 H568" marker-start="url(#ah)" marker-end="url(#ah)"/>
+            <path class="dg-line" d="M496,289 H568" marker-start="url(#ah)" marker-end="url(#ah)"/>
+            <path class="dg-line" d="M496,331 H568" marker-start="url(#ah)" marker-end="url(#ah)"/>
+
+            <!-- Permissions and logs -->
+            <rect class="dg-box" x="236" y="384" width="170" height="40" rx="2"/>
+            <text class="dg-mono-b" x="248" y="401">IAM role</text>
+            <text class="dg-note" x="248" y="416">S3 and Bedrock only</text>
+            <rect class="dg-box" x="420" y="384" width="116" height="40" rx="2"/>
+            <text class="dg-mono-b" x="432" y="401">CloudWatch</text>
+            <text class="dg-note" x="432" y="416">run logs</text>
+            <path class="dg-dash" d="M320,384 V364"/>
+            <path class="dg-dash" d="M478,384 V364"/>
+
+            <!-- Legend -->
+            <rect class="dg-llm" x="24" y="456" width="14" height="14" rx="2"/>
+            <text class="dg-note" x="46" y="467">calls the model</text>
+            <rect class="dg-box" x="176" y="456" width="14" height="14" rx="2"/>
+            <text class="dg-note" x="198" y="467">plain Python</text>
+            <rect class="dg-check" x="316" y="456" width="14" height="14" rx="2"/>
+            <text class="dg-note" x="338" y="467">validation</text>
+            <path class="dg-dash" d="M444,463 H470"/>
+            <text class="dg-note" x="478" y="467">permissions and logs</text>
+          </svg>
+        </div>
+        <figcaption><span class="fig-no">FIG. 01</span>The phase one architecture, redrawn from my original diagram.</figcaption>
+      </figure>
+
+      <ul>
+        <li><strong>The model never does math.</strong> Observe computes total spend, total income, the top three merchants and the average expense in pandas, so those numbers come out exact.</li>
+        <li><strong>Every answer gets checked.</strong> Act has to return JSON that matches a schema and puts each transaction in one of five categories: Shopping, Dining, Utilities, Income or Other. If it doesn't, the script asks again.</li>
+        <li><strong>Cheap and predictable.</strong> I picked Llama 3.1 8B because it costs less per token, and run it at temperature 0 with JSON only output.</li>
+        <li><strong>Least privilege.</strong> One IAM role can invoke the model and read and write objects in the project bucket, nothing else. CloudWatch keeps the run logs.</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table class="ruled-table">
+          <caption>What each stage writes</caption>
+          <thead><tr><th scope="col">File</th><th scope="col">Contents</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>plan.json</code></th><td>The ordered list of steps</td></tr>
+            <tr><th scope="row"><code>categorized.json</code></th><td>Each transaction with its date, merchant, amount and category</td></tr>
+            <tr><th scope="row"><code>kpis.json</code></th><td>Total spend, total income, top merchants, average expense</td></tr>
+            <tr><th scope="row"><code>summary.txt</code></th><td>A plain language summary of the KPIs</td></tr>
+            <tr><th scope="row"><code>reflection.txt</code></th><td>Errors, limits, and what could be better</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Write the orchestrator and run it end to end on a small CSV.</li>
+        <li>Label a sample of transactions by hand and measure how often the model agrees with me.</li>
+        <li>Track tokens and cost per run.</li>
+        <li>Compare it against the merchant rules in SpendGauge, which are free and instant, to see whether the model is worth it.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn" href="teacher-budget.html">Next: First year teacher budget</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="missing-data.html">← Regression with missing data</a>
+      <a href="teacher-budget.html">First year teacher budget →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>

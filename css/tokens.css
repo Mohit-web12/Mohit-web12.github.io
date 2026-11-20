@@ -1,0 +1,60 @@
+/* Design tokens. Every color, font, and measure the site uses lives here. */
+
+/* Fonts: Newsreader, Public Sans and Spline Sans Mono from Google Fonts (OFL),
+   self hosted as latin variable subsets so text isn't blocked on a third party. */
+@font-face {
+  font-family: "Newsreader";
+  src: url("../fonts/newsreader-latin.woff2") format("woff2");
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Public Sans";
+  src: url("../fonts/public-sans-latin.woff2") format("woff2");
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Spline Sans Mono";
+  src: url("../fonts/spline-sans-mono-latin.woff2") format("woff2");
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Color */
+  --ink: #14352B;            /* headings, footer, rules, primary button */
+  --sage: #3F6656;           /* links, secondary labels (5.7:1 on paper) */
+  --vermilion: #D9481F;      /* accent marks only, never text (3.8:1) */
+  --vermilion-dark: #B83A16; /* the one call to action, white text (5.8:1) */
+  --blush: #F2C4B0;          /* tag and highlight backgrounds */
+  --blush-text: #7A2410;     /* text on blush (6.4:1) */
+  --graphite: #2A2A28;       /* body text */
+  --paper: #F4F0E6;          /* page background */
+  --paper-deep: #EBE5D6;     /* alternate section background */
+  --placeholder: #E9E3D3;    /* image well background */
+  --white: #FFFFFF;
+
+  /* Rules */
+  --rule: 1px solid var(--ink);
+  --rule-heavy: 2px solid var(--ink);
+  --rule-light: 1px solid rgba(20, 53, 43, 0.28);
+  --radius: 2px;
+
+  /* Type */
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Measure */
+  --max: 1120px;
+  --gutter: 24px;
+  --touch: 44px;
+}
+
+@media (max-width: 480px) {
+  :root { --gutter: 16px; }
+}

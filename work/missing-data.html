@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regression with missing data · Mohit Chander</title>
+  <meta name="description" content="Fitting a line when about 10% of each variable is missing: a full join, MICE multiple imputation in R, a simple regression with R² 0.85, and a lack of fit test I had to fix.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/missing-data.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Regression with missing data">
+  <meta property="og:description" content="Fitting a line when about 10% of each variable is missing.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/missing-data.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#data">← Data and statistics</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">Data and statistics / R</span>
+      <h1>Regression with missing data</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Tools</th><td>R: dplyr, mice, alr3</td></tr>
+        <tr><th scope="row">Data</th><td><span class="num-inline" data-count>495</span> people with at least one value (<span class="num-inline" data-count>501</span> IDs in the files)</td></tr>
+        <tr><th scope="row">Result</th><td>R² <span class="num-inline" data-count>0.85</span>, and no evidence a straight line is the wrong shape</td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>I had two files matched by ID, one holding an independent variable and one holding a dependent variable, and about 10% of each was missing. Can you still fit a line you can trust? And once you have it, is a straight line actually the right shape?</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I did</span></h2>
+      <p><strong>Merged without losing anyone.</strong> A full join on ID kept every person, even those missing one of the two values.</p>
+
+      <div class="table-wrap">
+        <table class="ruled-table">
+          <caption>What was there after the join</caption>
+          <thead><tr><th scope="col">Rows with</th><th scope="col" class="num">Count</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Both values</th><td class="num">407</td></tr>
+            <tr><th scope="row">Only IV</th><td class="num">45</td></tr>
+            <tr><th scope="row">Only DV</th><td class="num">43</td></tr>
+            <tr><th scope="row">Neither</th><td class="num">6</td></tr>
+            <tr><th scope="row">Total IDs</th><td class="num">501</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>That's 9.8% of IV values and 10.2% of DV values missing. Dropping every incomplete row would have thrown away 88 people who had one of the two values.</p>
+      <p><strong>Imputed instead of deleting.</strong> I used MICE with the <code>norm.boot</code> method, which fills each gap from a regression on the observed data with bootstrap resampling, so the filled values carry realistic noise instead of all sitting on one line. I made five imputations (m = 5) with a fixed seed. The completed data had a mean IV of 5.07 (SD 1.05) and a mean DV of 67.11 (SD 7.27).</p>
+      <p><strong>Fit and checked the line.</strong> The fit was DV = 34.71 + 6.39 × IV, with a 95% interval for the slope of 6.15 to 6.63. Residuals were centered on zero with no pattern, and the QQ plot followed the line closely.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I found</span></h2>
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/md-scatter.webp" width="1194" height="694" loading="lazy" decoding="async" alt="Scatter plot of DV against IV with a fitted line. 407 fully observed points and 94 points with at least one imputed value. The imputed points sit inside the main cloud along the line.">
+        <figcaption><span class="fig-no">FIG. 01</span>The completed data. Points with an imputed value, in red, fall inside the observed cloud rather than off on their own.</figcaption>
+      </figure>
+      <p>The relationship is strongly linear. IV explains 85% of the variance in DV (R² 0.849), and each one unit increase in IV goes with about 6.4 more in DV.</p>
+      <p>To check the shape, I ran a lack of fit test: group IV into 20 bins and ask whether the bin averages wander away from the line. While rerunning everything for this page, I found a bug in my original version. It built the bin means in bin order but left the DV values in row order, so it compared the wrong rows. The result I first reported, F = 1.30 with p = 0.18, came from that mismatch. With the rows lined up, the test gives F = 0.92 and p = 0.55. The conclusion doesn't change, there's no sign the line is the wrong shape, but now it holds for the right reason.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Pool all five imputations with Rubin's rules instead of fitting on the first one. I tried it for this page: the pooled slope is 6.40 against 6.39, so the answer holds, but pooling is the correct way to report it.</li>
+        <li>Drop the six IDs with no values at all. MICE filled those in too, so the model ran on 501 rows when only 495 had anything observed.</li>
+        <li>Compare against the 407 complete rows alone, to show what imputation changed.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn" href="agentic-workflow.html">Next: Agentic financial workflow</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="true-model.html">← Finding the true model</a>
+      <a href="agentic-workflow.html">Agentic financial workflow →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>
