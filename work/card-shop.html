@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Card Shop After Dark · Mohit Chander</title>
+  <meta name="description" content="A Roblox game about running a trading card shop: a design doc, an architecture doc, a Python sim that tunes the economy, and nine systems built in Luau so far.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/card-shop.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Card Shop After Dark">
+  <meta property="og:description" content="A Roblox card shop game, designed on paper and tuned with a Python sim before it was built.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/card-shop.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#data">← Data and statistics</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">Also built / Luau, Python</span>
+      <h1>Card Shop After Dark</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Status</th><td><span class="tag"><span class="pulse" aria-hidden="true"></span>in progress</span> <span class="num-inline" data-count>9</span> systems built and tested in Roblox Studio</td></tr>
+        <tr><th scope="row">Tools</th><td>Luau in Roblox Studio, Python</td></tr>
+        <tr><th scope="row">Docs</th><td>A design doc and an architecture doc, about <span class="num-inline" data-count>17,000</span> words together</td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>Can a Roblox game about running a trading card shop feel rewarding to come back to every day, without pack opening turning into a money printer, and while following Roblox's rules for younger players?</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I did</span></h2>
+      <p><strong>Designed it on paper first.</strong> The design doc covers a card set of 26 creatures, a ten minute day and night cycle where you run the shop by day and keep sneaky Oddities out of it at night, the economy and progression, social features, and a monetization plan built around Roblox's rules. Robux never buys packs or cards, and every pack shows its odds.</p>
+      <p><strong>Tuned the economy with a simulator.</strong> Before building anything, I wrote a Python sim that plays the game as an efficient player, always buying the upgrade that pays for itself fastest, and prints when it reaches each level, shop stage and prestige. Every pacing number in the design came from it.</p>
+      <p><strong>Planned the architecture.</strong> The server owns the economy. One service is the only code allowed to change cash or XP, and it rejects bad numbers. Saves are session locked, so two servers can never write over the same player's data.</p>
+      <p><strong>Built it one system a day.</strong> So far that's nine systems in Luau: the foundation, plots and shops, shelves and stock, sales, upgrades, packs, cards and balance, day and night, and the night's server side. Each one was tested in Studio with zero script errors before I moved on. For example, the economy service turns away NaN, negative, infinite, text and fractional amounts.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I found</span></h2>
+      <figure class="figure chart" data-reveal="figure">
+        <img src="../img/charts/cs-pacing.webp" width="1196" height="603" loading="lazy" decoding="async" alt="Line chart of the simulated player's level over 195 minutes. Level 5 at 5 minutes, 12 at 30, 16 at 60, 18 at 120, and 20 at 195 minutes, where the player can prestige. Dashed lines mark the shop stages: Small Shop at 7 minutes, Card Shop at 23, Card Emporium at 66 and Megastore at 135.">
+        <figcaption><span class="fig-no">FIG. 01</span>Level over time for the sim's efficient player, with each shop upgrade marked.</figcaption>
+      </figure>
+      <p>In the sim, the efficient player reaches a Small Shop in 7 minutes, a Card Shop in 23, a Card Emporium in 66 and the Megastore in 135, and can prestige at level 20 after 195 minutes. Real players should take about 1.5 to 2 times longer, since they also open packs, decorate, trade and hunt Oddities at night.</p>
+      <p>The sim also prices every pack. Except for the Basic Pack, every pack returns about 92% of its cost on average if you sold every card at full value. Opening packs is the fun part, but it loses a little money over time, so the money still comes from running the shop.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Test with two real players at once. Studio has only run solo playtests so far.</li>
+        <li>Finish the launch scope, publish, and start Roblox's review so younger players can find it.</li>
+        <li>Compare real players' timings against the sim and retune the numbers.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn" href="../#data">Back to data and statistics</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="pharmacy-database.html">← Pharmacy inventory database</a>
+      <a href="trade-engine.html">Trade engine →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>

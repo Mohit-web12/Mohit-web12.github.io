@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pharmacy inventory database · Mohit Chander</title>
+  <meta name="description" content="A seven table relational database for a pharmacy, built in Microsoft Access with a partner: stock, suppliers, sales, purchase orders, and SQL queries for reorders, expired stock and best sellers.">
+  <link rel="canonical" href="https://mohit-web12.github.io/work/pharmacy-database.html">
+  <meta name="theme-color" content="#F4F0E6">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Pharmacy inventory database">
+  <meta property="og:description" content="A seven table model for stock, suppliers, sales and purchase orders, with the SQL to run it.">
+  <meta property="og:url" content="https://mohit-web12.github.io/work/pharmacy-database.html">
+  <meta property="og:image" content="https://mohit-web12.github.io/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="preload" href="../fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/public-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <script>(function(d){var f=false,q=location.search;try{if(/[?&]motion=on\b/.test(q))sessionStorage.setItem("motion","on");if(/[?&]motion=off\b/.test(q))sessionStorage.removeItem("motion");f=sessionStorage.getItem("motion")==="on"}catch(e){}var m=window.matchMedia;if(f||!(m&&m("(prefers-reduced-motion: reduce)").matches)){d.className+=" reveal-on"+(f?" force-motion":"")+("onpagereveal" in window?"":" pt-fade");setTimeout(function(){if(!window.siteReady)d.classList.remove("reveal-on")},3000)}})(document.documentElement)</script>
+  <script src="../js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="../">mohit chander</a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="../#work">Work</a></li>
+          <li><a href="../#data">Data and stats</a></li>
+          <li><a href="../resume.pdf">Resume</a></li>
+          <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="writeup wrap">
+    <a class="crumb" href="../#data">← Data and statistics</a>
+
+    <header class="writeup-head" data-reveal-children>
+      <span class="kicker">Also built / SQL</span>
+      <h1>Pharmacy inventory database</h1>
+    </header>
+
+    <table class="summary-table">
+      <tbody data-reveal-children>
+        <tr><th scope="row">Tools</th><td>SQL, Microsoft Access</td></tr>
+        <tr><th scope="row">Team</th><td>Built with my partner Emon</td></tr>
+        <tr><th scope="row">Result</th><td><span class="num-inline" data-count>7</span> tables, <span class="num-inline" data-count>5</span> queries, data entry forms and a spending report</td></tr>
+      </tbody>
+    </table>
+
+    <div class="prose" data-reveal-children>
+      <h2 data-reveal="heading"><span class="h-mask">The question</span></h2>
+      <p>A pharmacy has to know what's on its shelves, what's about to run out, what has expired, who it buys from, and who it sells to. We wanted one database that could answer all of that, instead of a pile of spreadsheets that drift out of sync.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What we built</span></h2>
+      <p>We modeled the pharmacy as seven tables and built it in Microsoft Access, with forms for entering customers and medicines, forms that show a sale or order together with its line items, and a report of what each customer has spent.</p>
+
+      <div class="table-wrap">
+        <table class="ruled-table">
+          <caption>The seven tables</caption>
+          <thead><tr><th scope="col">Table</th><th scope="col">What it holds</th><th scope="col">Points to</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>Medicine</code></th><td>Name, brand, category, price, stock on hand, reorder level, expiry date</td><td><code>Supplier</code></td></tr>
+            <tr><th scope="row"><code>Supplier</code></th><td>Name, contact, address</td><td>Nothing</td></tr>
+            <tr><th scope="row"><code>Customer</code></th><td>Name, contact, address</td><td>Nothing</td></tr>
+            <tr><th scope="row"><code>Sale</code></th><td>Date, total, payment method</td><td><code>Customer</code></td></tr>
+            <tr><th scope="row"><code>SaleDetail</code></th><td>Each medicine in a sale, with quantity and price</td><td><code>Sale</code>, <code>Medicine</code></td></tr>
+            <tr><th scope="row"><code>PurchaseOrder</code></th><td>Order date, expected delivery, total cost</td><td><code>Supplier</code></td></tr>
+            <tr><th scope="row"><code>OrderDetail</code></th><td>Each medicine on an order, with quantity and cost</td><td><code>PurchaseOrder</code>, <code>Medicine</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Sales and purchase orders each get their own detail table, so one sale or order can hold any number of medicines without repeating the header information. Every medicine points to the supplier that provides it, and every sale points to a customer.</p>
+      <p>Then we wrote queries for the five questions we set out to answer:</p>
+      <ul>
+        <li>Which medicines need to be reordered, because stock fell below the reorder level?</li>
+        <li>How much has each customer spent?</li>
+        <li>Which medicines does each supplier provide?</li>
+        <li>Which medicines have expired and need to come off the shelf?</li>
+        <li>What sells the most, and how many units?</li>
+      </ul>
+
+<pre><code>SELECT M.MedicineName, SUM(SD.QuantitySold) AS TotalUnitsSold
+FROM (Medicine AS M
+      INNER JOIN SaleDetail AS SD
+      ON M.MedicineID = SD.MedicineID)
+GROUP BY M.MedicineName
+ORDER BY SUM(SD.QuantitySold) DESC;</code></pre>
+      <p class="caption">The best sellers query: join every line item to its medicine, then total the units.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What we found</span></h2>
+      <p>On our sample data, the reorder query flagged two medicines: Vitamin D3, with 40 in stock against a reorder level of 50, and Loratadine, with 35 against 40. The expiry query compares each date with today's date, so it stays correct without anyone editing it.</p>
+      <p>Splitting each sale and order into a header and line items was what made the useful queries short. Totals per customer and units per medicine are each one join and a <code>GROUP BY</code>.</p>
+
+      <h2 data-reveal="heading"><span class="h-mask">What I'd do next</span></h2>
+      <ul>
+        <li>Track expiry by batch. Right now each medicine has one expiry date, but a real shelf holds several deliveries that expire at different times.</li>
+        <li>Move it to PostgreSQL and enforce rules in the database, like stock that can never go below zero.</li>
+        <li>Turn the reorder query into a draft purchase order, grouped by supplier.</li>
+      </ul>
+
+      <h2 data-reveal="heading"><span class="h-mask">Links</span></h2>
+      <div class="next-links">
+        <a class="btn" href="card-shop.html">Next: Card Shop After Dark</a>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More write ups" data-reveal>
+      <a href="teacher-budget.html">← First year teacher budget</a>
+      <a href="card-shop.html">Card Shop After Dark →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" data-reveal-children>
+      <a href="mailto:mohitchander005@gmail.com">mohitchander005@gmail.com</a>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/mohit-chander/">LinkedIn</a></li>
+      </ul>
+      <small>Mohit Chander, 2026. Hand written HTML and CSS.</small>
+    </div>
+  </footer>
+</body>
+</html>
