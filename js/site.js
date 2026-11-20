@@ -10,9 +10,7 @@
   "use strict";
 
   var root = document.documentElement;
-  // "?motion=on" (remembered for the tab) previews the motion even with reduced motion set.
-  var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) &&
-    !root.classList.contains("force-motion");
+  var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   var hasIO = "IntersectionObserver" in window;
   var motionOn = root.classList.contains("reveal-on");
   window.siteReady = true;

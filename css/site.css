@@ -1333,9 +1333,9 @@ pre code { font-size: inherit; }
    count ups (site.js skips those), no page fades, nothing moves. */
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
-  html:not(.force-motion) *,
-  html:not(.force-motion) *::before,
-  html:not(.force-motion) *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
@@ -1343,27 +1343,27 @@ pre code { font-size: inherit; }
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
-  html:not(.force-motion) [data-parallax] { transform: none !important; }
-  html:not(.force-motion) .scroll-progress,
-  html:not(.force-motion) .btn-cta::after,
-  html:not(.force-motion) .tag .pulse::after { display: none; }
-  html.reveal-on:not(.force-motion) [data-reveal],
-  html.reveal-on:not(.force-motion) [data-reveal-children] > *,
-  html.reveal-on:not(.force-motion) [data-reveal] .h-mask,
-  html.reveal-on:not(.force-motion) [data-reveal] .line-inner,
-  html.reveal-on:not(.force-motion) [data-reveal] .count,
-  html.reveal-on:not(.force-motion) [data-reveal] > .well,
-  html.reveal-on:not(.force-motion) [data-reveal] > img,
-  html.reveal-on:not(.force-motion) [data-reveal] > figcaption {
+  [data-parallax] { transform: none !important; }
+  .scroll-progress,
+  .btn-cta::after,
+  .tag .pulse::after { display: none; }
+  .reveal-on [data-reveal],
+  .reveal-on [data-reveal-children] > *,
+  .reveal-on [data-reveal] .h-mask,
+  .reveal-on [data-reveal] .line-inner,
+  .reveal-on [data-reveal] .count,
+  .reveal-on [data-reveal] > .well,
+  .reveal-on [data-reveal] > img,
+  .reveal-on [data-reveal] > figcaption {
     opacity: 1 !important;
     transform: none !important;
     clip-path: none !important;
   }
-  html:not(.force-motion) .break-demo.is-armed .ours,
-  html:not(.force-motion) .break-demo.is-armed .theirs,
-  html:not(.force-motion) .break-demo.is-armed .match .sym,
-  html:not(.force-motion) .break-demo.is-armed .break-tag,
-  html:not(.force-motion) .break-demo.is-armed .break-detail { opacity: 1 !important; }
-  html:not(.force-motion) .modules li:hover,
-  html:not(.force-motion) .data-table tbody tr:hover .res { transform: none; }
+  .break-demo.is-armed .ours,
+  .break-demo.is-armed .theirs,
+  .break-demo.is-armed .match .sym,
+  .break-demo.is-armed .break-tag,
+  .break-demo.is-armed .break-detail { opacity: 1 !important; }
+  .modules li:hover,
+  .data-table tbody tr:hover .res { transform: none; }
 }
